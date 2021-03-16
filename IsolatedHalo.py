@@ -38,24 +38,15 @@ def bin_centers(radial_bins):
 
 
 def fit_profile(file, radial_bins, centers):
-    # Physical constants
-    Msun_in_cgs = 1.98848e33
 
     sim = h5py.File(file, "r")
-
     pos = sim["/PartType1/Coordinates"][:, :]
-    mass = sim["/PartType1/Masses"][:]
+    mass = sim["/PartType1/Masses"][:] * 1e10
     num = len(mass)
 
-    # Read units
-    unit_mass_in_cgs = sim["/Units"].attrs["Unit mass in cgs (U_M)"]
-
-    # Gemoetry info
+    # Geometry info
     boxsize = sim["/Header"].attrs["BoxSize"]
     center = boxsize / 2.0
-
-    # Turn the mass into Msun
-    mass *= unit_mass_in_cgs / Msun_in_cgs
 
     # Radial coordinates [kpc units]
     r = np.sqrt(np.sum((pos - center) ** 2, axis=1))
@@ -79,8 +70,6 @@ def fit_profile(file, radial_bins, centers):
 def read_simulation(folder, snap):
 
     snap_list = np.arange(0,snap,1)
-
-    Msun_in_cgs = 1.98848e33
 
     # Define radial bins [log scale, kpc units]
     radial_bins = np.arange(0, 5, 0.1)
@@ -109,22 +98,23 @@ def read_simulation(folder, snap):
     probability_per_bin = np.zeros((len(centers), n_snap_s))
     search_radius_per_bin = np.zeros((len(centers), n_snap_s))
 
-    i = 0
+    i = 1
     for ii in snap_list:
-        sim = h5py.File(folder + "/halo_%04d.hdf5" % ii, "r")
 
+        sim = h5py.File(folder + "/halo_%04d.hdf5" % ii, "r")
         pos = sim["/PartType1/Coordinates"][:, :]
-        mass = sim["/PartType1/Masses"][:]
+        mass = sim["/PartType1/Masses"][:] * 1e10
         vel = sim["/PartType1/Velocities"][:, :]
         if ii < n_snap_s:
             nsidm = sim["/PartType1/SIDM_events"][:]
             ids = sim["/PartType1/ParticleIDs"][:]
             prob = sim["/PartType1/SIDM_probability"][:]
             h = sim["/PartType1/SIDM_search_radius"][:]
+            timestep = sim["/PartType1/Time_step_size"][:]
+            prob *= timestep
 
         # Read units
         unit_length_in_cgs = sim["/Units"].attrs["Unit length in cgs (U_L)"]
-        unit_mass_in_cgs = sim["/Units"].attrs["Unit mass in cgs (U_M)"]
         unit_time_in_cgs = sim["/Units"].attrs["Unit time in cgs (U_t)"]
 
         # Geometry info
@@ -133,12 +123,9 @@ def read_simulation(folder, snap):
 
         #Time info
         t = sim["/Header"].attrs["Time"] * 0.979 #Gyr
-        time[i] = t
+        time[i-1] = t
         delta_time = t - old_time
         old_time = t
-
-        # Turn the mass into Msun
-        mass *= unit_mass_in_cgs / Msun_in_cgs
 
         # Radial coordinates [kpc units]
         r = np.sqrt(np.sum((pos - center) ** 2, axis=1))
@@ -146,12 +133,12 @@ def read_simulation(folder, snap):
         SumMasses, _, _ = stat.binned_statistic(x=r, values=np.ones(len(r)) * mass[0], statistic="sum",
                                                 bins=radial_bins, )
         density = (SumMasses / bin_volumes(radial_bins))  # Msun/kpc^3
-        density_in_bin_per_snap[:, i] = density
+        density_in_bin_per_snap[:, i-1] = density
 
         # Doing fit #
         select = np.where( (centers>4) & (centers<1e4) )[0]
         popt, pcov = curve_fit(logfunc, np.log10(centers[select]), np.log10(density[select]))
-        core[i] = popt[0]
+        core[i-1] = popt[0]
 
         # Check 1D velocity dispersion
         vel *= unit_length_in_cgs / unit_time_in_cgs  # cm/s
@@ -161,9 +148,9 @@ def read_simulation(folder, snap):
         std_vel_y, _, _ = stat.binned_statistic(x=r, values=vel[:, 1], statistic="std", bins=radial_bins, )
         std_vel_z, _, _ = stat.binned_statistic(x=r, values=vel[:, 2], statistic="std", bins=radial_bins, )
         std_vel = np.sqrt(std_vel_x ** 2 + std_vel_y ** 2 + std_vel_z ** 2) / np.sqrt(3.)
-        velocity_in_bin_per_snap[:, i] = std_vel
+        velocity_in_bin_per_snap[:, i-1] = std_vel
 
-        if ii < n_snap_s:
+        if i < n_snap_s:
             ids_sorted = np.argsort(ids)
             r = r[ids_sorted]
             nsidm = nsidm[ids_sorted]
@@ -177,17 +164,18 @@ def read_simulation(folder, snap):
 
                 select = np.where((n_positions[:, i - 1] >= radial_bins[j]) &
                                   (n_positions[:, i - 1] < radial_bins[j + 1]))[0]
+
                 num_parts = len(select)
                 if num_parts > 1:
+
                     if i == 1: num_collisions = np.sum(n_collisions[select, i - 1])
                     if i > 1: num_collisions = np.sum(n_collisions[select, i - 1]) - np.sum(n_collisions[select, i - 2])
-                    scatter_rate_per_bin[j, i - 1] = num_collisions / (delta_time * num_parts)
+                    if num_collisions > 0: scatter_rate_per_bin[j, i - 1] = num_collisions / (delta_time * num_parts)
                     probability_per_bin[j, i - 1] = np.median(prob[select])
                     search_radius_per_bin[j, i - 1] = np.median(part_h[select])
 
         i += 1  # update counter
 
-    density_in_bin_per_snap = np.zeros((len(centers), n_snaps))
 
     density = np.zeros((len(centers), 5))
     velocity = np.zeros((len(centers), 5))
@@ -215,9 +203,9 @@ def plot_core_evolution(x, y):
     params = {
         "font.size": 12,
         "font.family": "Times",
-        "text.usetex": True,
-        "figure.figsize": (4, 3),
-        "figure.subplot.left": 0.15,
+      #  "text.usetex": True,
+      #  "figure.figsize": (4, 3),
+        "figure.subplot.left": 0.18,
         "figure.subplot.right": 0.95,
         "figure.subplot.bottom": 0.18,
         "figure.subplot.top": 0.95,
@@ -246,10 +234,10 @@ def plot_probability(x, y):
     # Plot parameters
     params = {
         "font.size": 12,
-        "font.family": "Times",
-        "text.usetex": True,
+      #  "font.family": "Times",
+      #  "text.usetex": True,
         "figure.figsize": (4, 3),
-        "figure.subplot.left": 0.15,
+        "figure.subplot.left": 0.18,
         "figure.subplot.right": 0.95,
         "figure.subplot.bottom": 0.18,
         "figure.subplot.top": 0.95,
@@ -265,7 +253,9 @@ def plot_probability(x, y):
     plt.grid("True")
 
     plt.plot(x, y, '-', color='tab:blue')
-    #plt.axis([1e9, 1e15, 1, 20])
+    plt.axis([1e0, 1e3, 1e-4,1e0])
+    plt.xscale('log')
+    plt.yscale('log')
     plt.xlabel("Radius [kpc]")
     plt.ylabel("Probability")
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
@@ -277,10 +267,10 @@ def plot_scatter_rate(x, y):
     # Plot parameters
     params = {
         "font.size": 12,
-        "font.family": "Times",
-        "text.usetex": True,
+      #  "font.family": "Times",
+      #  "text.usetex": True,
         "figure.figsize": (4, 3),
-        "figure.subplot.left": 0.15,
+        "figure.subplot.left": 0.18,
         "figure.subplot.right": 0.95,
         "figure.subplot.bottom": 0.18,
         "figure.subplot.top": 0.95,
@@ -296,7 +286,9 @@ def plot_scatter_rate(x, y):
     plt.grid("True")
 
     plt.plot(x, y, '-', color='tab:blue')
-    #plt.axis([1e9, 1e15, 1, 20])
+    plt.axis([1e0, 1e3, 1e-4, 1e2])
+    plt.xscale('log')
+    plt.yscale('log')
     plt.xlabel("Radius [kpc]")
     plt.ylabel("Scatter rate [particle$^{-1}$ Gyr$^{-1}$]")
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
@@ -308,10 +300,10 @@ def plot_search_radius(x, y):
     # Plot parameters
     params = {
         "font.size": 12,
-        "font.family": "Times",
-        "text.usetex": True,
+       # "font.family": "Times",
+       # "text.usetex": True,
         "figure.figsize": (4, 3),
-        "figure.subplot.left": 0.15,
+        "figure.subplot.left": 0.18,
         "figure.subplot.right": 0.95,
         "figure.subplot.bottom": 0.18,
         "figure.subplot.top": 0.95,
@@ -327,7 +319,9 @@ def plot_search_radius(x, y):
     plt.grid("True")
 
     plt.plot(x, y, '-', color='tab:blue')
-    #plt.axis([1e9, 1e15, 1, 20])
+    plt.axis([1e0, 1e3, 1e-2,1e2])
+    plt.xscale('log')
+    plt.yscale('log')
     plt.xlabel("Radius [kpc]")
     plt.ylabel("Search radius [kpc]")
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
@@ -340,22 +334,22 @@ def plot_profile_evolution(x, rho, vel):
     # Plot parameters
     params = {
         "font.size": 12,
-        "font.family": "Times",
-        "text.usetex": True,
+       # "font.family": "Times",
+       # "text.usetex": True,
         "figure.figsize": (7, 3),
-        "figure.subplot.left": 0.15,
+        "figure.subplot.left": 0.1,
         "figure.subplot.right": 0.95,
         "figure.subplot.bottom": 0.18,
         "figure.subplot.top": 0.95,
-        "figure.subplot.wspace": 0.45,
-        "figure.subplot.hspace": 0.35,
+        "figure.subplot.wspace": 0.35,
+        "figure.subplot.hspace": 0.25,
         "lines.markersize": 2,
         "lines.linewidth": 2,
     }
     rcParams.update(params)
 
     figure()
-    ax = plt.subplot(2, 1, 1)
+    ax = plt.subplot(1, 2, 1)
     plt.grid("True")
 
     plt.plot(x, rho[:,0], '-', color='tab:blue',label='t = 0 Gyr')
@@ -364,13 +358,16 @@ def plot_profile_evolution(x, rho, vel):
     plt.plot(x, rho[:,3], '-', color='tab:red',label='t = 4 Gyr')
     #plt.plot(x, rho[:,4], '-', color='tab:purple',label='t = 8 Gyr')
 
-    #plt.axis([1e9, 1e15, 1, 20])
+    plt.axis([1e0,1e3, 1e5, 1e9])
+    plt.xscale('log')
+    plt.yscale('log')
+
     plt.xlabel("Radius [kpc]")
-    plt.ylabel("Density [M$_{/odot}$/kpc$^{3}$]")
+    plt.ylabel("Density [M$_{\odot}$/kpc$^{3}$]")
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.legend(labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
 
-    ax = plt.subplot(2, 1, 2)
+    ax = plt.subplot(1, 2, 2)
     plt.grid("True")
 
     plt.plot(x, vel[:,0], '-', color='tab:blue',label='t = 0 Gyr')
@@ -379,7 +376,8 @@ def plot_profile_evolution(x, rho, vel):
     plt.plot(x, vel[:,3], '-', color='tab:red',label='t = 4 Gyr')
     #plt.plot(x, vel[:,4], '-', color='tab:purple',label='t = 8 Gyr')
 
-    #plt.axis([1e9, 1e15, 1, 20])
+    plt.axis([1e0, 1e3, 0, 600])
+    plt.xscale('log')
     plt.xlabel("Radius [kpc]")
     plt.ylabel("Velocity dispersion [km/s]")
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
