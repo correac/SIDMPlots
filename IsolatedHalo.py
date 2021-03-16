@@ -202,9 +202,9 @@ def plot_core_evolution(x, y):
     # Plot parameters
     params = {
         "font.size": 12,
-        "font.family": "Times",
+      #  "font.family": "Times",
       #  "text.usetex": True,
-      #  "figure.figsize": (4, 3),
+        "figure.figsize": (4, 3),
         "figure.subplot.left": 0.18,
         "figure.subplot.right": 0.95,
         "figure.subplot.bottom": 0.18,
