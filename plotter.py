@@ -7,7 +7,6 @@ from pylab import *
 import matplotlib.pyplot as plt
 from scatter_rate import calc_density, sigma_1D
 import scipy.stats as stat
-from scipy.special import spence
 
 
 def median_relations(x, y, xrange):
