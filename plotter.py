@@ -47,8 +47,8 @@ def plot_relations(siminfo,output_path):
     # Plot parameters
     params = {
         "font.size": 12,
-        "font.family": "Times",
-        "text.usetex": True,
+     #   "font.family": "Times",
+     #   "text.usetex": True,
         "figure.figsize": (5, 4),
         "figure.subplot.left": 0.15,
         "figure.subplot.right": 0.95,
@@ -77,7 +77,7 @@ def plot_relations(siminfo,output_path):
     plt.ylabel("c$_{200}$")
     plt.xscale('log')
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.savefig(output_path+"cM_relation.png", dpi=200)
+    plt.savefig(output_path+"cM_relation.png")#, dpi=200)
     plt.close()
 
     ###########
@@ -97,7 +97,7 @@ def plot_relations(siminfo,output_path):
     plt.ylabel("V$_{\mathrm{max}}$ [km/s]")
     plt.xscale('log')
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.savefig(output_path + "VmaxM_relation.png", dpi=200)
+    plt.savefig(output_path + "VmaxM_relation.png")#, dpi=200)
     plt.close()
 
 
@@ -213,6 +213,7 @@ def read_data(siminfo):
             particles_pos -= CoP[halo_j, :]  # centering
             particles_pos *= 1e3  # kpc
             particles_vel = vel[indices_p, :].copy()
+            if len(particles_mass) == 0: continue
 
             density_halo, velocity_halo = analyse_halo(particles_mass, particles_pos, particles_vel)
             density_all[:, halo] = density_halo
@@ -234,8 +235,8 @@ def plot_halo_profiles(siminfo,output_path):
     # Plot parameters
     params = {
         "font.size": 14,
-        "font.family": "Times",
-        "text.usetex": True,
+     #   "font.family": "Times",
+     #   "text.usetex": True,
         "figure.figsize": (7, 8),
         "figure.subplot.left": 0.12,
         "figure.subplot.right": 0.95,
@@ -312,5 +313,5 @@ def plot_halo_profiles(siminfo,output_path):
         plt.ylabel("Velocity dispersion [km/s]")
         ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
 
-    plt.savefig(output_path + "Density_profiles.png", dpi=200)
+    plt.savefig(output_path + "Density_profiles.png")#, dpi=200)
     plt.close()

@@ -2,11 +2,16 @@
 
 # Runs SIDMPlots using the following variables:
 
-folder="/Users/camila/TangoSIDM/SIDMPlots_data"
-output="/Users/camila/TangoSIDM/SIDMPlots_data/plots/"
+#folder="/Users/camila/TangoSIDM/SIDMPlots_data"
+#output="/Users/camila/TangoSIDM/SIDMPlots_data/plots/"
+#snap="60"
+#name="L025N064"
+
+folder="/projects/0/einf180/Cosmo_Volumes/L025boxSIDMTests/L025N256/L025N256_sigma_vel/sigma15_w090"
+output="/home/ccorrea/SIDMPlots/plots/L025N256_sigma15/"
+name="L025N256"
 snap="60"
-name="L025N064"
- 
+
 python sidmplots.py -d=$folder -s=$snap -n=$name -o=$output
 
 

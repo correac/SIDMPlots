@@ -60,8 +60,8 @@ def make_HMF(siminfo,output_path):
     # Plot parameters
     params = {
         "font.size": 14,
-        "font.family": "Times",
-        "text.usetex": True,
+#        "font.family": "Times",
+#        "text.usetex": True,
         "figure.figsize": (5, 4),
         "figure.subplot.left": 0.17,
         "figure.subplot.right": 0.95,
@@ -99,7 +99,7 @@ def make_HMF(siminfo,output_path):
     plt.yscale("log")
     plt.legend(loc=[0.45,0.8],labelspacing=0.2,handlelength=1.5,handletextpad=0.4,frameon=False)
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.savefig(output_path+"HMF_%04d.png" % siminfo.n_snapshots, dpi=200)
+    plt.savefig(output_path+"HMF_%04d.png" % siminfo.n_snapshots)#, dpi=200)
     plt.close()
 
 
@@ -129,5 +129,5 @@ def make_HMF(siminfo,output_path):
     plt.yscale("log")
     plt.legend(loc=[0.45,0.8],labelspacing=0.2,handlelength=1.5,handletextpad=0.4,frameon=False)
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.savefig(output_path+"SubHMF_%04d.png" % siminfo.n_snapshots, dpi=200)
+    plt.savefig(output_path+"SubHMF_%04d.png" % siminfo.n_snapshots)#, dpi=200)
     plt.close()

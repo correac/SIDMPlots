@@ -153,8 +153,8 @@ def plot_cosmic_scatter_rate(siminfo,output_path):
     # Plot parameters
     params = {
         "font.size": 12,
-        "font.family": "Times",
-        "text.usetex": True,
+    #    "font.family": "Times",
+    #    "text.usetex": True,
         "figure.figsize": (5, 4),
         "figure.subplot.left": 0.15,
         "figure.subplot.right": 0.95,
@@ -198,5 +198,5 @@ def plot_cosmic_scatter_rate(siminfo,output_path):
     plt.legend(loc=[0.45, 0.65], labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
     # axis([1,50,0,0.1])
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    savefig(output_path+"Cosmic_scatter_rate.png", dpi=200)
+    plt.savefig(output_path+"Cosmic_scatter_rate.png")#, dpi=200)
     plt.clf()
