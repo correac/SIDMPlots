@@ -156,6 +156,7 @@ def read_data(siminfo):
     c200c = properties_file["cNFW_200crit"][:]
     c200c[c200c == 0] = 1
     m200c = properties_file["Mass_200crit"][:] * 1e10
+    m200c[m200c == 0] = 1
     R200c = properties_file["R_200crit"][:] * 1e3 * siminfo.a #kpc
     xCoP = properties_file["Xcminpot"][:] * siminfo.a
     yCoP = properties_file["Ycminpot"][:] * siminfo.a
@@ -337,6 +338,7 @@ def read_individual_profiles(siminfo):
     c200c = properties_file["cNFW_200crit"][:]
     c200c[c200c == 0] = 1
     m200c = properties_file["Mass_200crit"][:] * 1e10
+    m200c[m200c == 0] = 1
     R200c = properties_file["R_200crit"][:] * 1e3 * siminfo.a #kpc
     xCoP = properties_file["Xcminpot"][:] * siminfo.a
     yCoP = properties_file["Ycminpot"][:] * siminfo.a
@@ -382,7 +384,7 @@ def read_individual_profiles(siminfo):
         if i == 1: density_main_11 = np.zeros((len(centers), num_halos))
         if i == 2: density_main_12 = np.zeros((len(centers), num_halos))
 
-        for halo in range(0, num_halos):
+        for halo in range(0, num_halos-1):
 
             halo_j = select_halos[select_main[halo]]
 
@@ -412,11 +414,15 @@ def read_individual_profiles(siminfo):
 
 
         num_halos = len(select_sub)
+
         if i == 0: density_sub_10 = np.zeros((len(centers), num_halos))
         if i == 1: density_sub_11 = np.zeros((len(centers), num_halos))
         if i == 2: density_sub_12 = np.zeros((len(centers), num_halos))
 
-        for halo in range(0, num_halos):
+        # Check
+        if num_halos == 0:continue
+
+        for halo in range(0, num_halos-1):
 
             halo_j = select_halos[select_sub[halo]]
 
@@ -504,8 +510,8 @@ def plot_individual_profiles(siminfo,output_path):
         plt.plot(centers, NFWrho, lw=1, color='black', label="NFW profile")
 
         for k in range(len(density[0,:])):
-            nozero = np.where(density[:,k]>0)[0]
-            plt.plot(centers[nozero], density[nozero, k], lw=0.5, color=color)
+            #nozero = np.where(density[:,k]>0)[0]
+            plt.plot(centers, density[:, k], lw=0.5, color=color)
 
         xarray = np.array([2.3, 2.3])
         yarray = np.array([1e3, 1e9])
@@ -526,8 +532,7 @@ def plot_individual_profiles(siminfo,output_path):
         plt.plot(centers, NFWrho, lw=1, color='black', label="NFW profile")
 
         for k in range(len(density_sub[0,:])):
-            nozero = np.where(density_sub[:,k]>0)[0]
-            plt.plot(centers[nozero], density_sub[nozero, k], lw=0.5, color=color)
+            plt.plot(centers, density_sub[:, k], lw=0.5, color=color)
 
         plt.ylim(1e3, 1e9)
         plt.xlim(1, 1e3)
