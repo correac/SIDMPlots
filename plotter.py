@@ -97,7 +97,7 @@ def plot_relations(siminfo,output_path):
     plt.ylabel("V$_{\mathrm{max}}$ [km/s]")
     plt.xscale('log')
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.savefig(output_path + "VmaxM_relation.png")#, dpi=200)
+    plt.savefig(output_path + "VmaxM_relation.png", dpi=200)
     plt.close()
 
 
@@ -313,7 +313,7 @@ def plot_halo_profiles(siminfo,output_path):
         plt.ylabel("Velocity dispersion [km/s]")
         ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
 
-    plt.savefig(output_path + "Density_profiles.png")#, dpi=200)
+    plt.savefig(output_path + "Density_profiles.png", dpi=200)
     plt.close()
 
 
@@ -356,16 +356,23 @@ def read_individual_profiles(siminfo):
     M200 = np.zeros(3)
 
     for i in range(0, 3):
-        if i == 0: select_halos = np.where((m200c >= 9.9) & (m200c <= 10.1))[0]  # >10 star parts
-        if i == 1: select_halos = np.where((m200c >= 10.9) & (m200c <= 11.1))[0]  # >10 star parts
-        if i == 2: select_halos = np.where((m200c >= 11.9) & (m200c <= 12.1))[0]  # >10 star parts
-
-        if len(select_halos) >= 60:
-            select_random = np.random.random_integers(len(select_halos)-1, size=(60))
-            select_halos = select_halos[select_random]
+        if i == 0:
+            select_halos = np.where((m200c >= 9.8) & (m200c <= 10.2))[0]  # >10 star parts
+        if i == 1:
+            select_halos = np.where((m200c >= 10.8) & (m200c <= 11.2))[0]  # >10 star parts
+        if i == 2:
+            select_halos = np.where((m200c >= 11.8) & (m200c <= 12.2))[0]  # >10 star parts
 
         select_main = np.where(subtype[select_halos] == 10)[0]
         select_sub = np.where(subtype[select_halos] > 10)[0]
+
+        if len(select_main) >= 30:
+            select_random = np.random.random_integers(len(select_main)-1, size=(30))
+            select_main = select_main[select_random]
+
+        if len(select_sub) >= 30:
+            select_random = np.random.random_integers(len(select_sub)-1, size=(30))
+            select_sub = select_sub[select_random]
 
         rs[i] = np.median(R200c[select_halos] / c200c[select_halos]) # kpc
         M200[i] = np.median(10 ** m200c[select_halos])
@@ -493,7 +500,6 @@ def plot_individual_profiles(siminfo,output_path):
             density = density_main_12
             density_sub = density_sub_12
 
-        NFWsig1D = sigma_1D(centers, M200[i], rs[i], z, siminfo)  # km/s
         NFWrho = calc_density(centers, M200[i], rs[i], z, siminfo)  # Msun/kpc^3
         plt.plot(centers, NFWrho, lw=1, color='black', label="NFW profile")
 
@@ -531,5 +537,5 @@ def plot_individual_profiles(siminfo,output_path):
         plt.ylabel("Density [M$_{\odot}$/kpc$^{3}$]")
         ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
 
-    plt.savefig(output_path + "Density_profiles_all.png")#, dpi=200)
+    plt.savefig(output_path + "Density_profiles_all.png", dpi=200)
     plt.close()

@@ -16,8 +16,8 @@ class SimInfo:
         self.halo_properties = os.path.join(folder,"halo_%04i.properties"%snap)
         self.catalog_groups = os.path.join(folder,"halo_%04i.catalog_groups"%snap)
         self.catalog_particles = os.path.join(folder, "halo_%04i.catalog_particles" % snap)
-        self.latest_snapshot = os.path.join(self.folder,"eagle_%04i.hdf5"%snap)
-        #self.latest_snapshot = os.path.join(self.folder,"snapshot_%04i.hdf5"%snap)
+        #self.latest_snapshot = os.path.join(self.folder,"eagle_%04i.hdf5"%snap)
+        self.latest_snapshot = os.path.join(self.folder,"snapshot_%04i.hdf5"%snap)
         self.n_snapshots = int(snap)
 
         snapshot_file = h5py.File(self.latest_snapshot, "r")
@@ -30,8 +30,8 @@ class SimInfo:
         self.sigma = snapshot_file["/SIDMScheme"].attrs["SIDM cross section [cgs units]"]
 
     def snapshot(self,snap):
-        return os.path.join(self.folder,"eagle_%04i.hdf5"%snap)
-        #return os.path.join(self.folder,"snapshot_%04i.hdf5"%snap)
+        #return os.path.join(self.folder,"eagle_%04i.hdf5"%snap)
+        return os.path.join(self.folder,"snapshot_%04i.hdf5"%snap)
 
 if __name__ == '__main__':
     from utils import *
