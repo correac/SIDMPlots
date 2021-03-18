@@ -31,45 +31,46 @@ def analyse_halo(mass, pos):
     density = (SumMasses / bin_volumes(radial_bins))  # Msun/kpc^3
     return density
 
-def read_data(which_halos,snap,folder,output_path,name,mass):
+def read_data(which_halos,snap,folder,output_path,name,mass_select):
 
     radial_bins = np.arange(0, 5, 0.1)
     radial_bins = 10**radial_bins
     centers = bin_centers(radial_bins) #kpc
 
-    with h5py.File(folder+"snapshot_00%02i.hdf5"%snap) as hf:
+    with h5py.File(folder+"/snapshot_00%02i.hdf5"%snap) as hf:
         a = hf["/Header"].attrs["Scale-factor"]
         mass = hf['PartType1/Masses'][:] * 1e10 #Msun
         pos = hf['PartType1/Coordinates'][:][:] * a
         vel = hf['PartType1/Velocities'][:][:]
         unit_length_in_cgs = hf["/Units"].attrs["Unit length in cgs (U_L)"]
 
-    snapshot_file = h5py.File(folder+"snapshot_00%02i.hdf5"%snap)
-    group_file = h5py.File(folder+"subhalo_00%02i.catalog_groups"%snap)
-    particles_file = h5py.File(folder+"subhalo_00%02i.catalog_particles"%snap)
-    properties_file = h5py.File(folder+"subhalo_00%02i.properties"%snap)
+    snapshot_file = h5py.File(folder+"/snapshot_00%02i.hdf5"%snap)
+    group_file = h5py.File(folder+"/halo_00%02i.catalog_groups"%snap)
+    particles_file = h5py.File(folder+"/halo_00%02i.catalog_particles"%snap)
+    properties_file = h5py.File(folder+"/halo_00%02i.properties"%snap)
 
     m200c = properties_file["Mass_200crit"][:] * 1e10
+    m200c[m200c == 0] = 1
     m200c = np.log10(m200c)
     CoP = np.zeros((len(m200c), 3))
     CoP[:, 0] = properties_file["Xcminpot"][:] * a
     CoP[:, 1] = properties_file["Ycminpot"][:] * a
     CoP[:, 2] = properties_file["Zcminpot"][:] * a
-    type = properties_file["Structuretype"][:]
+    subtype = properties_file["Structuretype"][:]
 
-    if mass == 11:
+    if mass_select == 10:
         select_halos = np.where((m200c >= 9.8) & (m200c <= 10.2))[0]  # >10 star parts
-    if mass == 12:
+    if mass_select == 11:
         select_halos = np.where((m200c >= 10.8) & (m200c <= 11.2))[0]  # >10 star parts
-    if mass == 13:
+    if mass_select == 12:
         select_halos = np.where((m200c >= 11.8) & (m200c <= 12.2))[0]  # >10 star parts
 
     # Checking sample
     if which_halos == 'subhalos':
-        select = np.where(type[select_halos] > 10)[0]
+        select = np.where(subtype[select_halos] > 10)[0]
         select_halos = select_halos[select]
     else:
-        select = np.where(type[select_halos] == 10)[0]
+        select = np.where(subtype[select_halos] == 10)[0]
         select_halos = select_halos[select]
 
     if len(select_halos) >= 30:
@@ -114,17 +115,17 @@ def read_data(which_halos,snap,folder,output_path,name,mass):
     output[:,2] = densityLow
     output[:,3] = densityUp
 
-    if mass == 10:
+    if mass_select == 10:
         if which_halos == 'subhalos':
             np.savetxt(output_path+"Profile_subhalos_M10_"+name+".txt", output, fmt="%s")
         else:
             np.savetxt(output_path+"Profile_halos_M10_"+name+".txt", output, fmt="%s")
-    if mass == 11:
+    if mass_select == 11:
         if which_halos == 'subhalos':
             np.savetxt(output_path+"Profile_subhalos_M11_"+name+".txt", output, fmt="%s")
         else:
             np.savetxt(output_path+"Profile_halos_M11_"+name+".txt", output, fmt="%s")
-    if mass == 12:
+    if mass_select == 12:
         if which_halos == 'subhalos':
             np.savetxt(output_path+"Profile_subhalos_M12_"+name+".txt", output, fmt="%s")
         else:

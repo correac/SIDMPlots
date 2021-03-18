@@ -12,6 +12,7 @@ output="/home/ccorrea/SIDMPlots/plots/L025N256_sigma15/"
 name="L025N256"
 snap="60"
 
-python sidmplots.py -d=$folder -s=$snap -n=$name -o=$output
+python extract_profile_cosmo_box.py -d=$folder -s=$snap -n=$name -o=$output
+#python sidmplots.py -d=$folder -s=$snap -n=$name -o=$output
 
 
