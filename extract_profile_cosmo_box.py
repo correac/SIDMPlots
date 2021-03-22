@@ -53,9 +53,9 @@ def read_data(which_halos,snap,folder,output_path,name,mass_select):
     m200c[m200c == 0] = 1
     m200c = np.log10(m200c)
     CoP = np.zeros((len(m200c), 3))
-    CoP[:, 0] = properties_file["Xcminpot"][:] * a
-    CoP[:, 1] = properties_file["Ycminpot"][:] * a
-    CoP[:, 2] = properties_file["Zcminpot"][:] * a
+    CoP[:, 0] = properties_file["Xcminpot"][:]
+    CoP[:, 1] = properties_file["Ycminpot"][:]
+    CoP[:, 2] = properties_file["Zcminpot"][:]
     subtype = properties_file["Structuretype"][:]
 
     if mass_select == 10:

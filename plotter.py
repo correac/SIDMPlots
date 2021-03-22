@@ -156,11 +156,11 @@ def read_data(siminfo):
     c200c = properties_file["cNFW_200crit"][:]
     c200c[c200c == 0] = 1
     m200c = properties_file["Mass_200crit"][:] * 1e10
-    m200c[m200c == 0] = 1
-    R200c = properties_file["R_200crit"][:] * 1e3 * siminfo.a #kpc
-    xCoP = properties_file["Xcminpot"][:] * siminfo.a
-    yCoP = properties_file["Ycminpot"][:] * siminfo.a
-    zCoP = properties_file["Zcminpot"][:] * siminfo.a
+    m200c[m200c <= 0] = 1
+    R200c = properties_file["R_200crit"][:] * 1e3 #kpc
+    xCoP = properties_file["Xcminpot"][:]
+    yCoP = properties_file["Ycminpot"][:]
+    zCoP = properties_file["Zcminpot"][:]
     m200c = np.log10(m200c)
     CoP = np.zeros((len(xCoP), 3))
     CoP[:, 0] = xCoP
@@ -338,11 +338,11 @@ def read_individual_profiles(siminfo):
     c200c = properties_file["cNFW_200crit"][:]
     c200c[c200c == 0] = 1
     m200c = properties_file["Mass_200crit"][:] * 1e10
-    m200c[m200c == 0] = 1
-    R200c = properties_file["R_200crit"][:] * 1e3 * siminfo.a #kpc
-    xCoP = properties_file["Xcminpot"][:] * siminfo.a
-    yCoP = properties_file["Ycminpot"][:] * siminfo.a
-    zCoP = properties_file["Zcminpot"][:] * siminfo.a
+    m200c[m200c <= 0] = 1
+    R200c = properties_file["R_200crit"][:] * 1e3 #kpc
+    xCoP = properties_file["Xcminpot"][:]
+    yCoP = properties_file["Ycminpot"][:]
+    zCoP = properties_file["Zcminpot"][:]
     subtype = properties_file["Structuretype"]
     m200c = np.log10(m200c)
     CoP = np.zeros((len(xCoP), 3))

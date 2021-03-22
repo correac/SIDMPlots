@@ -39,7 +39,7 @@ if __name__ == '__main__':
     output_path = args.output
     siminfo = SimInfo(args.directory, args.snapshot, args.name)
 
-    plot_cosmic_scatter_rate(siminfo,output_path)
+    #plot_cosmic_scatter_rate(siminfo,output_path)
     make_HMF(siminfo,output_path)
     plot_relations(siminfo,output_path)
     plot_halo_profiles(siminfo, output_path)
