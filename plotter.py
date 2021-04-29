@@ -213,12 +213,12 @@ def read_data(siminfo):
     M200 = np.zeros(3)
 
     for i in range(0, 3):
-        if i == 0: select_halos = np.where((m200c >= 9.9) & (m200c <= 10.1))[0]  # >10 star parts
-        if i == 1: select_halos = np.where((m200c >= 10.9) & (m200c <= 11.1))[0]  # >10 star parts
-        if i == 2: select_halos = np.where((m200c >= 11.9) & (m200c <= 12.1))[0]  # >10 star parts
+        if i == 0: select_halos = np.where((m200c >= 8.9) & (m200c <= 9.1))[0]  # >10 star parts
+        if i == 1: select_halos = np.where((m200c >= 9.9) & (m200c <= 10.1))[0]  # >10 star parts
+        if i == 2: select_halos = np.where((m200c >= 10.9) & (m200c <= 11.1))[0]  # >10 star parts
 
-        if len(select_halos) >= 20:
-            select_random = np.random.random_integers(len(select_halos)-1, size=(20))
+        if len(select_halos) >= 10:
+            select_random = np.random.random_integers(len(select_halos)-1, size=(10))
             select_halos = select_halos[select_random]
 
         rs[i] = np.median(R200c[select_halos] / c200c[select_halos]) # kpc
@@ -270,10 +270,12 @@ def output_halo_profiles(siminfo):
                np.transpose([rs, M200]))
 
     np.savetxt(f"{siminfo.output_path}/Density_profiles_" + siminfo.name + ".txt",
-               np.transpose([density, sig_density]))
+               np.transpose([density[:,0], density[:,1], density[:,2],
+                             sig_density[:,0], sig_density[:,1], sig_density[:,2]]))
 
     np.savetxt(f"{siminfo.output_path}/Velocity_profiles_" + siminfo.name + ".txt",
-               np.transpose([density, sig_density]))
+               np.transpose([velocity[:,0], velocity[:,1], velocity[:,2],
+                             sig_velocity[:,0], sig_velocity[:,1], sig_velocity[:,2]]))
 
 
 def plot_halo_profiles(siminfo, name_list):
@@ -311,20 +313,9 @@ def plot_halo_profiles(siminfo, name_list):
         ax = plt.subplot(3, 2, j)
         plt.grid("True")
 
-        if i==0: plt.text('$10^{9}$M$_{\odot}$ halo')
-        if i==1: plt.text('$10^{10}$M$_{\odot}$ halo')
-        if i==2: plt.text('$10^{11}$M$_{\odot}$ halo')
-
         color = ['tab:blue', 'tab:orange']
         k = 0
         for name in name_list:
-            data = np.loadtxt(f"{siminfo.output_path}/Halo_details_" + name + ".txt")
-            M200 = data[:, 1]
-            rs = data[:,0]
-
-            NFWrho = calc_density(centers, M200[i], rs[i], z, siminfo)  # Msun/kpc^3
-            plt.plot(centers, NFWrho, lw=1, color='black', label="NFW profile")
-
             data = np.loadtxt(f"{siminfo.output_path}/Density_profiles_" + name + ".txt")
             density = data[:,0:3]
             sig_density = data[:,3:6]
@@ -335,6 +326,16 @@ def plot_halo_profiles(siminfo, name_list):
                              color=color[k])
 
             k += 1
+
+        data = np.loadtxt(f"{siminfo.output_path}/Halo_details_" + name + ".txt")
+        M200 = data[:, 1]
+        rs = data[:, 0]
+
+        NFWrho = calc_density(centers, M200[i], rs[i], z, siminfo)  # Msun/kpc^3
+        plt.plot(centers, NFWrho, lw=1, color='black', label="NFW profile")
+
+        mass = np.log10(M200[i])
+        plt.text(0.05,0.05,'$10^{%0.1f'%mass+'}$M$_{\odot}$ halo', transform=ax.transAxes)
 
         xarray = np.array([2.3, 2.3])
         yarray = np.array([1e3, 1e9])
@@ -354,22 +355,21 @@ def plot_halo_profiles(siminfo, name_list):
 
         k = 0
         for name in name_list:
-            data = np.loadtxt(f"{siminfo.output_path}/Halo_details_" + name + ".txt")
-            M200 = data[:, 1]
-            rs = data[:, 0]
-            NFWsig1D = sigma_1D(centers, M200[i], rs[i], z, siminfo)  # km/s
-            plt.plot(centers, NFWsig1D, lw=1, color='black')
-
             data = np.loadtxt(f"{siminfo.output_path}/Velocity_profiles_" + name + ".txt")
-            velocity = data[:, 0]
-            sig_velocity = data[:, 1]
+            velocity = data[:, 0:3]
+            sig_velocity = data[:, 3:6]
 
             plt.plot(centers, velocity[:, i], lw=2, color=color[k], label=name)
             plt.fill_between(centers, velocity[:, i] - sig_velocity[:, i] / 2,
                              velocity[:, i] + sig_velocity[:, i] / 2,
                              alpha=0.4, color=color[k])
-
             k += 1
+
+        data = np.loadtxt(f"{siminfo.output_path}/Halo_details_" + name + ".txt")
+        M200 = data[:, 1]
+        rs = data[:, 0]
+        NFWsig1D = sigma_1D(centers, M200[i], rs[i], z, siminfo)  # km/s
+        plt.plot(centers, NFWsig1D, lw=1, color='black')
 
         #plt.ylim(0, 80)
         plt.xlim(1, 1e3)
@@ -378,7 +378,7 @@ def plot_halo_profiles(siminfo, name_list):
         plt.ylabel("Velocity dispersion [km/s]")
         ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
 
-    plt.savefig(siminfo.output_path + "Density_profiles.png", dpi=200)
+    plt.savefig(f"{siminfo.output_path}/Density_profiles.png", dpi=200)
     plt.close()
 
 

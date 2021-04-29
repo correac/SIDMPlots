@@ -55,9 +55,9 @@ class SimInfo:
 def sidmplots(siminfo):
 
     #plot_cosmic_scatter_rate(siminfo,output_path)
-    HMF_output_files(siminfo)
-    output_cM_vMax_relations(siminfo)
-    #output_halo_profiles(siminfo)
+    #HMF_output_files(siminfo)
+    #output_cM_vMax_relations(siminfo)
+    output_halo_profiles(siminfo)
     #plot_individual_profiles(siminfo)
 
 
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         # Run SIDMplots
         sidmplots(siminfo)
 
-    make_HMF(siminfo, name_list)
-    plot_relations(siminfo, name_list)
-    #plot_halo_profiles(siminfo, name_list)
+    #make_HMF(siminfo, name_list)
+    #plot_relations(siminfo, name_list)
+    plot_halo_profiles(siminfo, name_list)
 
