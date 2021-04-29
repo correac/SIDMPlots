@@ -31,6 +31,16 @@ from scipy.optimize import curve_fit
 import matplotlib.ticker as ticker
 from matplotlib.ticker import FuncFormatter
 
+def tick_function(X):
+    # X : km/s
+    G = 4.30091e-3 #pc Msun^-1 (km/s)^2
+    rho = 2.7753e11 * 0.6777**2 #Msun/Mpc^3
+    rho /= (1e6)**3  #Msun/pc^3
+    M = X**2 / G
+    M *= (3 / (4. * np.pi* 200 * rho))**(1/3)
+    M = M**(3/2)
+    M = np.log10(M)
+    return ["%.1f" % z for z in M]
 
 def notation(x, pos):
     power = int(np.log10(x))
@@ -38,18 +48,19 @@ def notation(x, pos):
     return r'$%i$' % (int(x))
 
 def velocity_dependence(x,w0):
-    f = 2.*w0**4/x**4
+    f = 2. * w0**4 / x**4
     f *= (2*np.log(1+0.5*x**2/w0**2)-np.log(1+x**2/w0**2))
     return f
 
 def sigma(x,mx,mphi,alpha):
-    w0 = 300.*(mphi/10.)*(10./mx)
-    sigma0 = 274.85*(alpha/0.01)**2*(mx/10.)*(10./mphi)**4
+    w0 = 300. * (mphi/10.) * (10./mx)
+    sigma0 = 274.85 * (alpha/0.01)**2 * (mx/10.) * (10./mphi)**4
     sigmam = sigma0
     y = velocity_dependence(x,w0)
     y *= sigmam #cm^2/gr
     y *= 2
     return y
+
 
 # Plot parameters
 params = {
@@ -76,69 +87,70 @@ plt.grid(True)
 xrange = np.arange(0,3,0.05)
 xrange = 10**xrange
 
-mx = 8.0 #Gev
-mphi = 0.4 #Mev
-alpha = 6.74e-6
-w0 = 300.*(mphi/10.)*(10./mx)
-sigma0 = 274.85*(alpha/0.01)**2*(mx/10.)*(10./mphi)**4
-print(w0,sigma0)
+xdata = np.array([10,11,12,15,20])
+ydata = np.array([60,60,58,55,50])
+popt, pcov = curve_fit(sigma, xdata, ydata)
+print('mx',popt[0])
+print('mphi',popt[1])
+print('alpha',popt[2])
+print('---')
 
-ax1.plot(xrange,sigma(xrange,mx,mphi,alpha),'-',lw=2,label='$m_{x}=8.0$GeV, $m_{\phi}=0.3$MeV',color='tab:orange')
+ax1.plot(xdata,ydata,'o',color='tab:grey')
+ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:red',label=r'$m_{x}{=}3.604$GeV, $m_{\phi}{=}0.450$MeV, $\alpha{=}1.63e-5$')
 
-mx = 5.0 #Gev
-mphi = 0.3 #Mev
-alpha = 6.74e-6
-w0 = 300.*(mphi/10.)*(10./mx)
-sigma0 = 274.85*(alpha/0.01)**2*(mx/10.)*(10./mphi)**4
-print(w0,sigma0)
-ax1.plot(xrange,sigma(xrange,mx,mphi,alpha),'-',lw=2,label='$m_{x}=5.0$GeV, $m_{\phi}=0.3$MeV',color='tab:red')
 
-mx = 3.0 #Gev
-mphi = 0.34 #Mev
-alpha = 6.74e-6
-w0 = 300.*(mphi/10.)*(10./mx)
-sigma0 = 274.85*(alpha/0.01)**2*(mx/10.)*(10./mphi)**4
-print(w0,sigma0)
-ax1.plot(xrange,sigma(xrange,mx,mphi,alpha),'-',lw=2,label='$m_{x}=3.0$GeV, $m_{\phi}=0.34$MeV',color='tab:blue')
+xdata = np.array([10,11,12,15,20])
+ydata = np.array([45,45,43,40,38])
+popt, pcov = curve_fit(sigma, xdata, ydata)
+print('mx',popt[0])
+print('mphi',popt[1])
+print('alpha',popt[2])
+print('---')
 
-mx = 3.0 #Gev
-mphi = 0.3 #Mev
-alpha = 6.74e-6
-w0 = 300.*(mphi/10.)*(10./mx)
-sigma0 = 274.85*(alpha/0.01)**2*(mx/10.)*(10./mphi)**4
-print(w0,sigma0)
-ax1.plot(xrange,sigma(xrange,mx,mphi,alpha),'-',lw=2,label='$m_{x}=3.0$GeV, $m_{\phi}=0.3$MeV',color='tab:green')
+ax1.plot(xdata,ydata,'o',color='tab:grey')
+ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:orange',label=r'$m_{x}{=}3.089$GeV, $m_{\phi}{=}0.396$MeV, $\alpha{=}1.17e-5$')
 
-ax1.legend(loc=[0.1,0.5],labelspacing=0.2,handlelength=2,handletextpad=0.4,frameon=False)
-#ax1.set_xscale('log')
+xdata = np.array([10,11,12,15,20])
+ydata = np.array([35,35,33,30,25])
+popt, pcov = curve_fit(sigma, xdata, ydata)
+print('mx',popt[0])
+print('mphi',popt[1])
+print('alpha',popt[2])
+print('---')
+
+ax1.plot(xdata,ydata,'o',color='tab:grey')
+ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:blue',label=r'$m_{x}{=}3.634$GeV, $m_{\phi}{=}0.316$MeV, $\alpha{=}6.38e-6$')
+
+xdata = np.array([10,11,12,15,20])
+ydata = np.array([21,20,19,18,15])
+popt, pcov = curve_fit(sigma, xdata, ydata)
+print('mx',popt[0])
+print('mphi',popt[1])
+print('alpha',popt[2])
+print('---')
+
+ax1.plot(xdata,ydata,'o',color='tab:grey')
+ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:green',label=r'$m_{x}{=}4.195$GeV, $m_{\phi}{=}0.385$MeV, $\alpha{=}6.68e-6$')
+
+
+ax1.plot(xrange,np.ones(len(xrange)),'--',lw=1,color='tab:grey')
+ax1.plot(xrange,10*np.ones(len(xrange)),'--',lw=1,color='tab:grey')
+
+ax1.legend(loc=[0.0,0.6],labelspacing=0.2,handlelength=1,handletextpad=0.4,frameon=False,fontsize=10)
 ax1.set_xlabel('$v$ [km/s]')
 ax1.set_ylabel('$\sigma_{T}/m_{x}$ [cm$^{2}$g$^{-1}$]')
 ax1.set_xlim([10,200])
-#ax1.set_ylim([0,500])
+ax1.set_ylim([0,100])
+ax1.set_xscale('log')
 
-#ax1.set_axis([1,1e4,0,20])
-
-#ax1.set_xlabel(r"Original x-axis: $X$")
-
-new_tick_locations = np.array([10,40,100,200])
-
-def tick_function(X):
-    # X : km/s
-    G = 4.30091e-3 #pc Msun^-1 (km/s)^2
-    rho = 2.7753e11 * 0.6777**2 #Msun/Mpc^3
-    rho /= (1e6)**3  #Msun/pc^3
-    M = X**2 / G
-    M *= (3 / (4. * np.pi* 200 * rho))**(1/3)
-    M = M**(3/2)
-    M = np.log10(M)
-    return ["%.1f" % z for z in M]
-
+new_tick_locations = np.array([10,50,100,150,200])
 print(tick_function(new_tick_locations))
 ax2.set_xlim(ax1.get_xlim())
-#ax2.set_xscale('log')
 ax2.set_xticks(new_tick_locations)
 ax2.set_xticklabels(tick_function(new_tick_locations))
 ax2.set_xlabel(r"M$_{200}$ [log$_{10}$ M$_{\odot}$]")
-plt.savefig('cross_section_fig3.png', dpi=200)
+ax1.tick_params(direction='in', axis='both', which='both', pad=4.5)
+ax2.tick_params(direction='in', axis='both', which='both', pad=4.5)
+plt.savefig('find_cross_section.png', dpi=200)
 
 

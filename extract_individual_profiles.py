@@ -60,6 +60,7 @@ def read_data(which_halos,snap,folder,output_path,name,mass_select):
     particles_file = h5py.File(folder+"/halo_00%02i.catalog_particles"%snap, "r")
     properties_file = h5py.File(folder+"/halo_00%02i.properties"%snap, "r")
 
+    c200c = properties_file["cNFW_200crit"][:]
     m200c = properties_file["Mass_200crit"][:] * 1e10
     m200c[m200c <= 0] = 1
     m200c = np.log10(m200c)
@@ -82,16 +83,30 @@ def read_data(which_halos,snap,folder,output_path,name,mass_select):
         select = np.where(subtype[select_halos] == 10)[0]
         select_halos = select_halos[select]
 
-    if len(select_halos) >= 30:
-        select_random = np.random.random_integers(len(select_halos) - 1, size=(30))
+    if len(select_halos) >= 5:
+        select_random = np.random.random_integers(len(select_halos) - 1, size=(5))
         select_halos = select_halos[select_random]
 
 
-    M200 = np.median(10 ** m200c[select_halos])
+    M200 = m200c[select_halos]
+    c200 = c200c[select_halos]
     num_halos = len(select_halos)
 
-    density_all = np.zeros((len(centers), num_halos))
-    velocity_all = np.zeros((len(centers), num_halos))
+    if which_halos == 'subhalos':
+        file = output_path + "Profile_subhalos"
+        file += "_" + name + ".txt"
+        output = np.zeros((num_halos, 2))
+        output[:, 0] = M200
+        output[:, 1] = c200
+        np.savetxt(file, output, fmt="%s")
+
+    else:
+        file = output_path + "Profile_halos"
+        file += "_" + name + ".txt"
+        output = np.zeros((num_halos, 2))
+        output[:, 0] = M200
+        output[:, 1] = c200
+        np.savetxt(file, output, fmt="%s")
 
     for halo in range(0, num_halos):
         halo_j = select_halos[halo]
@@ -115,40 +130,29 @@ def read_data(which_halos,snap,folder,output_path,name,mass_select):
         if len(particles_mass) == 0 :continue
 
         density_halo, velocity_halo = analyse_halo(particles_mass, particles_pos, particles_vel)
-        density_all[:, halo] = density_halo
-        velocity_all[:, halo] = velocity_halo
 
-    densityM = np.median(density_all[:, :], axis=1)
-    densityUp = np.percentile(density_all[:, :], 84, axis=1)
-    densityLow = np.percentile(density_all[:, :], 16, axis=1)
+        output = np.zeros((len(centers), 3))
+        output[:, 0] = centers
+        output[:, 1] = density_halo
+        output[:, 2] = velocity_halo
 
-    velocityM = np.median(velocity_all[:, :], axis=1)
-    velocityUp = np.percentile(velocity_all[:, :], 84, axis=1)
-    velocityLow = np.percentile(velocity_all[:, :], 16, axis=1)
+        if which_halos == 'subhalos':
+            file = output_path + "Profile_subhalos"
+            file += "_"+name+"_%02i"%halo +".txt"
+            np.savetxt(file, output, fmt="%s")
 
-    # Output final median profile:
-    output = np.zeros((len(centers),7))
-    output[:,0] = centers
-    output[:,1] = densityM
-    output[:,2] = densityLow
-    output[:,3] = densityUp
-    output[:,4] = velocityM
-    output[:,5] = velocityLow
-    output[:,6] = velocityUp
+        else:
+            file = output_path + "Profile_halos"
+            file += "_"+name+"_%02i"%halo +".txt"
+            np.savetxt(file, output, fmt="%s")
 
 
-    if which_halos == 'subhalos':
-        file = output_path + "Profile_subhalos_M%0.1f"%mass_select
-        file += "_"+name+".txt"
-        np.savetxt(file, output, fmt="%s")
-    else:
-        file = output_path + "Profile_halos_M%0.1f"%mass_select
-        file += "_" + name + ".txt"
-        np.savetxt(file, output, fmt="%s")
+
+
 
 
 if __name__ == '__main__':
-    
+
     from utils import *
 
     output_path = args.output
@@ -156,13 +160,13 @@ if __name__ == '__main__':
     snapshot = args.snapshot
     name = args.name
 
-    mass = 10
+    mass = 9.5
     read_data("halos",snapshot,folder,output_path,name,mass)
     read_data("subhalos",snapshot,folder,output_path,name,mass)
 
-    #mass = 10
-    #read_data("halos",snapshot,folder,output_path,name,mass)
-    #read_data("subhalos",snapshot,folder,output_path,name,mass)
+    mass = 10
+    read_data("halos",snapshot,folder,output_path,name,mass)
+    read_data("subhalos",snapshot,folder,output_path,name,mass)
 
     #mass = 11
     #read_data("halos",snapshot,folder,output_path,name,mass)

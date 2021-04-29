@@ -33,22 +33,31 @@ def median_relations(x, y, xrange):
 
     return xvalues, yvalues, yvalues_err_down, yvalues_err_up
 
-
-def plot_relations(siminfo,output_path):
+def output_cM_vMax_relations(siminfo):
 
     # Load data:
     g = h5py.File(siminfo.halo_properties, "r")
     mass = g["Mass_200crit"][:] * 1e10  # convert to Msun
     c200 = g["cNFW_200crit"][:]
-    Vmax = g["Vmax"][:] #km/s
+    Vmax = g["Vmax"][:]  # km/s
     subtype = g["Structuretype"][:]
     centrals = subtype == 10
+
+    mass = mass[centrals]
+    c200 = c200[centrals]
+    Vmax = Vmax[centrals]
+
+    np.savetxt(f"{siminfo.output_path}/cMVmax_" + siminfo.name + ".txt",
+               np.transpose([mass, c200, Vmax]))
+
+
+def plot_relations(siminfo, name_list):
 
     # Plot parameters
     params = {
         "font.size": 12,
-     #   "font.family": "Times",
-     #   "text.usetex": True,
+        "font.family": "Times",
+        "text.usetex": True,
         "figure.figsize": (5, 4),
         "figure.subplot.left": 0.15,
         "figure.subplot.right": 0.95,
@@ -65,19 +74,31 @@ def plot_relations(siminfo,output_path):
     ax = plt.subplot(1, 1, 1)
     plt.grid("True")
 
-    xrange = np.arange(7,15,0.2)
-    xrange = 10**xrange
-    xvalues, yvalues, yvalues_err_down, yvalues_err_up = median_relations(mass[centrals], c200[centrals], xrange)
+    color = ['tab:blue', 'tab:orange']
+    i = 0
+    for name in name_list:
+        data = np.loadtxt(f"{siminfo.output_path}/cMVmax_" + name + ".txt")
 
-    plt.plot(mass[centrals], c200[centrals], 'o', color='tab:blue')
-    plt.plot(xvalues, yvalues, '-', color='tab:blue')
-    plt.fill_between(xvalues, yvalues_err_down, yvalues_err_up, alpha=0.2, color='tab:blue')
-    plt.axis([1e9,1e15,1,20])
+        mass = data[:, 0]
+        c200 = data[:, 1]
+
+        xrange = np.arange(6,15,0.2)
+        xrange = 10**xrange
+        xvalues, yvalues, yvalues_err_down, yvalues_err_up = median_relations(mass, c200, xrange)
+
+        plt.plot(mass, c200, 'o', color=color[i],alpha=0.2)
+        plt.plot(xvalues, yvalues, '-', color='white',zorder=10)
+        plt.plot(xvalues, yvalues, '-', lw=1.5, color=color[i], label=name,zorder=10)
+        plt.fill_between(xvalues, yvalues_err_down, yvalues_err_up, alpha=0.2, color=color[i])
+        i += 1
+
+    plt.axis([1e6,1e15,1,50])
     plt.xlabel("M${}_{200,\mathrm{crit}}$ ($M_\odot$)")
     plt.ylabel("c$_{200}$")
     plt.xscale('log')
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.savefig(output_path+"cM_relation.png")#, dpi=200)
+    plt.legend(loc="upper right", labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    plt.savefig(f"{siminfo.output_path}/cM_relation.png", dpi=200)
     plt.close()
 
     ###########
@@ -85,19 +106,32 @@ def plot_relations(siminfo,output_path):
     ax = plt.subplot(1, 1, 1)
     plt.grid("True")
 
-    xrange = np.arange(7, 15, 0.2)
-    xrange = 10 ** xrange
-    xvalues, yvalues, yvalues_err_down, yvalues_err_up = median_relations(mass[centrals], Vmax[centrals], xrange)
+    color = ['tab:blue', 'tab:orange']
+    i = 0
+    for name in name_list:
+        data = np.loadtxt(f"{siminfo.output_path}/cMVmax_" + name + ".txt")
 
-    plt.plot(mass[centrals], Vmax[centrals], 'o', color='tab:blue')
-    plt.plot(xvalues, yvalues, '-', color='tab:blue')
-    plt.fill_between(xvalues, yvalues_err_down, yvalues_err_up, alpha=0.2, color='tab:blue')
-    plt.axis([1e9, 1e15, 0, 600])
+        mass = data[:, 0]
+        Vmax = data[:, 2]
+
+        xrange = np.arange(6, 15, 0.2)
+        xrange = 10 ** xrange
+        xvalues, yvalues, yvalues_err_down, yvalues_err_up = median_relations(mass, Vmax, xrange)
+
+        plt.plot(mass, Vmax, 'o', color=color[i], alpha=0.2)
+        plt.plot(xvalues, yvalues, '-', color='white',zorder=10)
+        plt.plot(xvalues, yvalues, '-', lw=1.5, color=color[i], label=name,zorder=10)
+        plt.fill_between(xvalues, yvalues_err_down, yvalues_err_up, alpha=0.2, color=color[i])
+        i += 1
+
+    plt.axis([1e6, 1e15, 1, 1e3])
     plt.xlabel("M${}_{200,\mathrm{crit}}$ ($M_\odot$)")
     plt.ylabel("V$_{\mathrm{max}}$ [km/s]")
     plt.xscale('log')
+    plt.yscale('log')
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.savefig(output_path + "VmaxM_relation.png", dpi=200)
+    plt.legend(loc="upper right", labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    plt.savefig(f"{siminfo.output_path}/VmaxM_relation.png", dpi=200)
     plt.close()
 
 
@@ -228,16 +262,27 @@ def read_data(siminfo):
     return rs, M200, density, sig_density, velocity, sig_velocity
 
 
-
-def plot_halo_profiles(siminfo,output_path):
+def output_halo_profiles(siminfo):
 
     rs, M200, density, sig_density, velocity, sig_velocity = read_data(siminfo)
+
+    np.savetxt(f"{siminfo.output_path}/Halo_details_" + siminfo.name + ".txt",
+               np.transpose([rs, M200]))
+
+    np.savetxt(f"{siminfo.output_path}/Density_profiles_" + siminfo.name + ".txt",
+               np.transpose([density, sig_density]))
+
+    np.savetxt(f"{siminfo.output_path}/Velocity_profiles_" + siminfo.name + ".txt",
+               np.transpose([density, sig_density]))
+
+
+def plot_halo_profiles(siminfo, name_list):
 
     # Plot parameters
     params = {
         "font.size": 14,
-     #   "font.family": "Times",
-     #   "text.usetex": True,
+        "font.family": "Times",
+        "text.usetex": True,
         "figure.figsize": (7, 8),
         "figure.subplot.left": 0.12,
         "figure.subplot.right": 0.95,
@@ -254,7 +299,7 @@ def plot_halo_profiles(siminfo,output_path):
     ######################
     figure()
 
-    z = 0  # Redshift
+    z = siminfo.z  # Redshift
     radial_bins = np.arange(0, 3, 0.1)
     radial_bins = 10 ** radial_bins
     centers = bin_centers(radial_bins)  # kpc
@@ -266,24 +311,30 @@ def plot_halo_profiles(siminfo,output_path):
         ax = plt.subplot(3, 2, j)
         plt.grid("True")
 
-        if i==0:
-            label = '$10^{11}$M$_{\odot}$ halo'
-            color = 'tab:green'
-        if i==1:
-            label = '$10^{12}$M$_{\odot}$ halo'
-            color = 'tab:orange'
-        if i==2:
-            label = '$10^{13}$M$_{\odot}$ halo'
-            color = 'tab:blue'
+        if i==0: plt.text('$10^{9}$M$_{\odot}$ halo')
+        if i==1: plt.text('$10^{10}$M$_{\odot}$ halo')
+        if i==2: plt.text('$10^{11}$M$_{\odot}$ halo')
 
-        NFWsig1D = sigma_1D(centers, M200[i], rs[i], z, siminfo)  # km/s
-        NFWrho = calc_density(centers, M200[i], rs[i], z, siminfo)  # Msun/kpc^3
+        color = ['tab:blue', 'tab:orange']
+        k = 0
+        for name in name_list:
+            data = np.loadtxt(f"{siminfo.output_path}/Halo_details_" + name + ".txt")
+            M200 = data[:, 1]
+            rs = data[:,0]
 
-        plt.plot(centers, NFWrho, lw=1, color='black', label="NFW profile")
-        plt.plot(centers, density[:, i], lw=2, color=color)
-        plt.fill_between(centers, density[:, i] - sig_density[:, i] / 2,
-                         density[:, i] + sig_density[:, i] / 2, alpha=0.4,
-                         color=color, label=label)
+            NFWrho = calc_density(centers, M200[i], rs[i], z, siminfo)  # Msun/kpc^3
+            plt.plot(centers, NFWrho, lw=1, color='black', label="NFW profile")
+
+            data = np.loadtxt(f"{siminfo.output_path}/Density_profiles_" + name + ".txt")
+            density = data[:,0:3]
+            sig_density = data[:,3:6]
+
+            plt.plot(centers, density[:, i], lw=2, color=color[k], label=name)
+            plt.fill_between(centers, density[:, i] - sig_density[:, i] / 2,
+                             density[:, i] + sig_density[:, i] / 2, alpha=0.4,
+                             color=color[k])
+
+            k += 1
 
         xarray = np.array([2.3, 2.3])
         yarray = np.array([1e3, 1e9])
@@ -301,11 +352,24 @@ def plot_halo_profiles(siminfo,output_path):
         ax = plt.subplot(3, 2, j+1)
         plt.grid("True")
 
-        plt.plot(centers, NFWsig1D, lw=1, color='black')
-        plt.plot(centers, velocity[:, i], lw=2, color=color)
-        plt.fill_between(centers, velocity[:, i] - sig_velocity[:, i] / 2,
-                         velocity[:, i] + sig_velocity[:, i] / 2,
-                         alpha=0.4, color=color)
+        k = 0
+        for name in name_list:
+            data = np.loadtxt(f"{siminfo.output_path}/Halo_details_" + name + ".txt")
+            M200 = data[:, 1]
+            rs = data[:, 0]
+            NFWsig1D = sigma_1D(centers, M200[i], rs[i], z, siminfo)  # km/s
+            plt.plot(centers, NFWsig1D, lw=1, color='black')
+
+            data = np.loadtxt(f"{siminfo.output_path}/Velocity_profiles_" + name + ".txt")
+            velocity = data[:, 0]
+            sig_velocity = data[:, 1]
+
+            plt.plot(centers, velocity[:, i], lw=2, color=color[k], label=name)
+            plt.fill_between(centers, velocity[:, i] - sig_velocity[:, i] / 2,
+                             velocity[:, i] + sig_velocity[:, i] / 2,
+                             alpha=0.4, color=color[k])
+
+            k += 1
 
         #plt.ylim(0, 80)
         plt.xlim(1, 1e3)
@@ -314,7 +378,7 @@ def plot_halo_profiles(siminfo,output_path):
         plt.ylabel("Velocity dispersion [km/s]")
         ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
 
-    plt.savefig(output_path + "Density_profiles.png", dpi=200)
+    plt.savefig(siminfo.output_path + "Density_profiles.png", dpi=200)
     plt.close()
 
 
@@ -359,11 +423,11 @@ def read_individual_profiles(siminfo):
 
     for i in range(0, 3):
         if i == 0:
-            select_halos = np.where((m200c >= 9.8) & (m200c <= 10.2))[0]  # >10 star parts
+            select_halos = np.where((m200c >= 8.8) & (m200c <= 9.2))[0]  # >10 star parts
         if i == 1:
-            select_halos = np.where((m200c >= 10.8) & (m200c <= 11.2))[0]  # >10 star parts
+            select_halos = np.where((m200c >= 9.8) & (m200c <= 10.2))[0]  # >10 star parts
         if i == 2:
-            select_halos = np.where((m200c >= 11.8) & (m200c <= 12.2))[0]  # >10 star parts
+            select_halos = np.where((m200c >= 10.8) & (m200c <= 11.2))[0]  # >10 star parts
 
         select_main = np.where(subtype[select_halos] == 10)[0]
         select_sub = np.where(subtype[select_halos] > 10)[0]
@@ -460,8 +524,8 @@ def plot_individual_profiles(siminfo,output_path):
     # Plot parameters
     params = {
         "font.size": 14,
-     #   "font.family": "Times",
-     #   "text.usetex": True,
+        "font.family": "Times",
+        "text.usetex": True,
         "figure.figsize": (7, 8),
         "figure.subplot.left": 0.12,
         "figure.subplot.right": 0.95,
@@ -491,17 +555,17 @@ def plot_individual_profiles(siminfo,output_path):
         plt.grid("True")
 
         if i==0:
-            label = '$10^{10}$M$_{\odot}$ halo'
+            label = '$10^{9}$M$_{\odot}$ halo'
             color = 'tab:green'
             density = density_main_10
             density_sub = density_sub_10
         if i==1:
-            label = '$10^{11}$M$_{\odot}$ halo'
+            label = '$10^{10}$M$_{\odot}$ halo'
             color = 'tab:orange'
             density = density_main_11
             density_sub = density_sub_11
         if i==2:
-            label = '$10^{12}$M$_{\odot}$ halo'
+            label = '$10^{11}$M$_{\odot}$ halo'
             color = 'tab:blue'
             density = density_main_12
             density_sub = density_sub_12
