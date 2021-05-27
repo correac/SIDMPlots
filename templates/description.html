@@ -1,0 +1,139 @@
+{% block table %}
+<h3>{{ data.metadata.run_name }}</h3>
+
+<h4>Basic</h4>
+<ul>
+    <li>Box-size: {{ data.metadata.boxsize[0] | format_number }}</li>
+    <li>Dark matter particle mass:
+        {{ data.metadata.initial_mass_table.dark_matter.to("Solar_Mass") | format_number }}</li>
+    <li>Gas particle mass: {{ data.metadata.initial_mass_table.gas.to("Solar_Mass") | format_number }}</li>
+    <li>Snapshot \(z={{ "%2.2f" | format(data.metadata.z)}}\), \(a={{ "%2.2f" | format(data.metadata.a)}}\)</li>
+</ul>
+
+<h4>Particle Numbers</h4>
+<p>Cube root of Dark Matter particle number: {{ (data.metadata.n_dark_matter**(1/3)+0.01) | int }}</p>
+<table>
+    <tr>
+        <th>Gas</th>
+        <th>Dark Matter</th>
+        <th>Star</th>
+        <th>Black Hole</th>
+    </tr>
+    <tr>
+        <td>{{ data.metadata.n_gas }}</td>
+        <td>{{ data.metadata.n_dark_matter }}</td>
+        <td>{{ data.metadata.n_stars }}</td>
+        <td>{{ data.metadata.n_black_holes }}</td>
+    </tr>
+</table>
+
+<h4>Gravitational Softening</h4>
+<table>
+    <tr>
+        <th colspan=2>Baryons</th>
+        <th colspan=2>Dark Matter</th>
+    </tr>
+    <tr>
+        <th>Max Physical</th>
+        <th>Comoving</th>
+        <th>Max Physical</th>
+        <th>Comoving</th>
+    </tr>
+    <tr>
+        <td>{{ data.metadata.parameters | get_if_present_float("Gravity:max_physical_baryon_softening", data.units.length, "kpc") }}
+        </td>
+        <td>{{ data.metadata.parameters | get_if_present_float("Gravity:comoving_baryon_softening", data.units.length, "kpc") }}
+        </td>
+        <td>{{ data.metadata.parameters | get_if_present_float("Gravity:max_physical_DM_softening", data.units.length, "kpc") }}
+        </td>
+        <td>{{ data.metadata.parameters | get_if_present_float("Gravity:comoving_DM_softening", data.units.length, "kpc") }}
+        </td>
+    </tr>
+</table>
+
+
+<h4>Self-interacting DM</h4>
+<table>
+    <tr>
+        <th>Parameter</th>
+        <th>Value</th>
+    </tr>
+    <tr>
+        <td>Use constant cross section</td>
+        <td>{{ (data.metadata.parameters["SIDM:use_constant_cross_section"] | float) | format_number}}</td>
+    </tr>
+    <tr>
+        <td>Use velocity-dependent cross section</td>
+        <td>{{ (data.metadata.parameters["SIDM:use_velocity_dependent_cross_section"] | float) | format_number}}</td>
+    </tr>
+    <tr>
+        <td>Use momentum transfer (vel-dep) cross section</td>
+        <td>{{ (data.metadata.parameters["SIDM:use_momentum_transfer_cross_section"] | float) | format_number}}</td>
+    </tr>
+    <tr>
+        <td>Use isotropic scatter</td>
+        <td>{{ (data.metadata.parameters["SIDM:with_isotropic_scattering"] | float) | format_number}}</td>
+    </tr>
+    <tr>
+        <td>Use anisotropic scatter</td>
+        <td>{{ (data.metadata.parameters["SIDM:with_anisotropic_scattering"] | float) | format_number}}</td>
+    </tr>
+    <tr>
+        <td>(If velocity-dependent model enabled): mx</td>
+        <td>{{ data.metadata.parameters | get_if_present_float("SIDM:mx_GeV", "GeV") }}</td>
+    </tr>
+    <tr>
+        <td>(If velocity-dependent model enabled): mphi</td>
+        <td>{{ data.metadata.parameters | get_if_present_float("SIDM:mphi_MeV", "MeV") }}</td>
+    </tr>
+    <tr>
+        <td>(If velocity-dependent model enabled): alpha_x</td>
+        <td>{{ (data.metadata.parameters["SIDM:alphax"] | float) | format_number }}</td>
+    </tr>
+    <tr>
+        <td>(If constant cross-section model enabled): sigma_cm2_g</td>
+        <td>{{ data.metadata.parameters | get_if_present_float("SIDM:sigma_cm2_g") }} cm\(^{2}\)/g</td>
+    </tr>
+    <tr>
+        <td>Resolution eta</td>
+        <td>{{ (data.metadata.parameters["SIDM:resolution_eta"] | float) | format_number }}</td>
+    </tr>
+    <tr>
+        <td>h max</td>
+        <td>{{ (data.metadata.parameters["SIDM:h_max"] | float) | format_number }}</td>
+    </tr>
+    <tr>
+        <td>h min ratio</td>
+        <td>{{ (data.metadata.parameters["SIDM:h_min_ratio"] | float) | format_number }}</td>
+    </tr>
+    <tr>
+        <td>h sidm</td>
+        <td>{{ (data.metadata.parameters["SIDM:h_sidm"] | float) | format_number }}</td>
+    </tr>
+    <tr>
+        <td>h tolerance</td>
+        <td>{{ (data.metadata.parameters["SIDM:h_tolerance"] | float) | format_number }}</td>
+    </tr>
+    <tr>
+        <td>Maximum ghost iterations</td>
+        <td>{{ (data.metadata.parameters["SIDM:max_ghost_iterations"] | float) | format_number }}</td>
+    </tr>
+    <tr>
+        <td>Maximum time-step</td>
+        <td>{{ (data.metadata.parameters["SIDM:maximum_timestep"] | float) | format_number }}</td>
+    </tr>
+    <tr>
+        <td>Minimum time-step</td>
+        <td>{{ (data.metadata.parameters["SIDM:minimum_timestep"] | float) | format_number }}</td>
+    </tr>
+
+
+
+</table>
+
+<h4>Code Setup</h4>
+<ul>
+    <li>Code info: {{ data.metadata.code_info }}</li>
+    <li>Compiler info: {{ data.metadata.compiler_info }}</li>
+</ul>
+{% endblock %}

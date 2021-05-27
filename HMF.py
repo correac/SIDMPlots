@@ -18,7 +18,7 @@ def colossus_hmf(log_m, siminfo):
 
 def HMF(siminfo,halo):
 
-    dlogm = 0.2
+    dlogm = 0.4
     bins = 10 ** (np.arange(6, 15, dlogm))
     V = siminfo.boxSize ** 3 # Mpc
 
@@ -102,7 +102,7 @@ def make_HMF(siminfo, name_list):
         i += 1
 
     M = np.arange(6, 16, 0.2)
-    mfunc = colossus_hmf(M, siminfo) / (siminfo.h)**3
+    mfunc = colossus_hmf(M, siminfo) / siminfo.h ** 3
     plt.plot(10 ** M * siminfo.h, mfunc, '-', label = 'Tinker et al. (2008)',color='black',zorder=1)
 
     plt.xscale("log")
@@ -111,11 +111,11 @@ def make_HMF(siminfo, name_list):
     plt.axvline(x=limit, linestyle="--", lw=1, color="grey")
 
     plt.xlabel("M${}_{200,\mathrm{crit}}$ ($M_\odot$)")
-    plt.ylabel("dn/d($\log$10(M${}_{200}$) (Mpc$^{-3}$)")
+    plt.ylabel("dn/d$\log$10(M${}_{200}$) (Mpc$^{-3}$)")
+
     ax.tick_params(direction='in',axis='both',which='both',pad=4.5)
     plt.yscale("log")
     plt.legend(loc="upper right",labelspacing=0.2,handlelength=1.5,handletextpad=0.4,frameon=False)
-    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.savefig(f"{siminfo.output_path}/HMF_%04d.png" % siminfo.n_snapshots, dpi=200)
     plt.close()
 

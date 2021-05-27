@@ -2,3 +2,6 @@ h5py
 matplotlib
 numpy
 scipy
+unyt
+jinja2
+swiftsimio

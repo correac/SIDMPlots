@@ -5,10 +5,15 @@ Description here
 import os
 import h5py
 import glob
-#from scatter_rate import plot_cosmic_scatter_rate
+from scatter_rate import plot_cosmic_scatter_rate
 from HMF import make_HMF, HMF_output_files
 from plotter import output_cM_vMax_relations, \
-    plot_relations, output_halo_profiles, plot_halo_profiles
+    plot_relations, output_halo_profiles, plot_halo_profiles, \
+    output_particles_cross_section, plot_cross_section_profiles
+from diversity import make_diversity_data, plot_diversity
+
+from html import make_web, add_web_section, render_web, add_metadata_to_web
+from loadplots import loadPlots
 
 class SimInfo:
     def __init__(self,folder,snap,output_path,name):
@@ -34,10 +39,10 @@ class SimInfo:
         else :
             self.catalog_particles = os.path.join(folder, "halo_%04i.catalog_particles" % snap)
 
-        self.latest_snapshot = os.path.join(self.folder,"snapshot_%04i.hdf5"%snap)
+        self.snapshot = os.path.join(self.folder,"snapshot_%04i.hdf5"%snap)
         self.n_snapshots = int(snap)
 
-        snapshot_file = h5py.File(self.latest_snapshot, "r")
+        snapshot_file = h5py.File(self.snapshot, "r")
         self.boxSize = snapshot_file["/Header"].attrs["BoxSize"][0] # Mpc
         self.a = snapshot_file["/Cosmology"].attrs["Scale-factor"]
         self.z = 1. / self.a - 1.
@@ -58,7 +63,9 @@ def sidmplots(siminfo):
     #HMF_output_files(siminfo)
     #output_cM_vMax_relations(siminfo)
     output_halo_profiles(siminfo)
+    #make_diversity_data(siminfo)
     #plot_individual_profiles(siminfo)
+    #output_particles_cross_section(siminfo)
 
 
 if __name__ == '__main__':
@@ -84,9 +91,23 @@ if __name__ == '__main__':
         siminfo = SimInfo(directory, snap_number, output_path, sim_name)
 
         # Run SIDMplots
-        sidmplots(siminfo)
+        #sidmplots(siminfo)
+
+        # Make initial website
+        if sims == 0: web = make_web(siminfo)
+        if sims > 0: add_metadata_to_web(web, siminfo)
 
     #make_HMF(siminfo, name_list)
     #plot_relations(siminfo, name_list)
-    plot_halo_profiles(siminfo, name_list)
+    #plot_halo_profiles(siminfo, name_list, "centrals")
+    #plot_halo_profiles(siminfo, name_list, "satellites")
+    #plot_cross_section_profiles(siminfo, name_list, "centrals")
+    #plot_cross_section_profiles(siminfo, name_list, "satellites")
+    #plot_diversity(siminfo)
 
+    # After making individual plots finish up the website
+    # Load galaxy plots
+    loadPlots(web, siminfo)
+
+    # Finish and output html file
+    render_web(web, siminfo.output_path)

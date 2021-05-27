@@ -67,11 +67,11 @@ params = {
     "font.size": 13,
     "font.family":"Times",
     "text.usetex": True,
-    "figure.figsize": (4, 3),
+    "figure.figsize": (4.5, 4),
     "figure.subplot.left": 0.18,
     "figure.subplot.right": 0.95,
-    "figure.subplot.bottom": 0.18,
-    "figure.subplot.top": 0.82,
+    "figure.subplot.bottom": 0.13,
+    "figure.subplot.top": 0.85,
     "figure.subplot.wspace": 0.25,
     "figure.subplot.hspace": 0.25,
     "lines.markersize": 6,
@@ -96,7 +96,7 @@ print('alpha',popt[2])
 print('---')
 
 ax1.plot(xdata,ydata,'o',color='tab:grey')
-ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:red',label=r'$m_{x}{=}3.604$GeV, $m_{\phi}{=}0.450$MeV, $\alpha{=}1.63e-5$')
+ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:red',label=r'$m_{x}{=}3.604$GeV, $m_{\phi}{=}0.450$MeV, $\alpha{=}1.63e{-}5$')
 
 
 xdata = np.array([10,11,12,15,20])
@@ -108,7 +108,7 @@ print('alpha',popt[2])
 print('---')
 
 ax1.plot(xdata,ydata,'o',color='tab:grey')
-ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:orange',label=r'$m_{x}{=}3.089$GeV, $m_{\phi}{=}0.396$MeV, $\alpha{=}1.17e-5$')
+ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:orange',label=r'$m_{x}{=}3.089$GeV, $m_{\phi}{=}0.396$MeV, $\alpha{=}1.17e{-}5$')
 
 xdata = np.array([10,11,12,15,20])
 ydata = np.array([35,35,33,30,25])
@@ -119,7 +119,7 @@ print('alpha',popt[2])
 print('---')
 
 ax1.plot(xdata,ydata,'o',color='tab:grey')
-ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:blue',label=r'$m_{x}{=}3.634$GeV, $m_{\phi}{=}0.316$MeV, $\alpha{=}6.38e-6$')
+ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:blue',label=r'$m_{x}{=}3.634$GeV, $m_{\phi}{=}0.316$MeV, $\alpha{=}6.38e{-}6$')
 
 xdata = np.array([10,11,12,15,20])
 ydata = np.array([21,20,19,18,15])
@@ -132,15 +132,20 @@ print('---')
 ax1.plot(xdata,ydata,'o',color='tab:grey')
 ax1.plot(xrange,sigma(xrange,*popt),'-',lw=2,color='tab:green',label=r'$m_{x}{=}4.195$GeV, $m_{\phi}{=}0.385$MeV, $\alpha{=}6.68e-6$')
 
+ax1.plot(xrange,sigma(xrange,10,0.5,6.74e-6),'-',lw=1,color='tab:purple',label=r'$m_{x}{=}10$GeV, $m_{\phi}{=}0.5$MeV, $\alpha{=}6.74e{-}6$')
+ax1.plot(xrange,sigma(xrange,5,0.5,6.74e-6),'-',lw=1,color='tab:green',label=r'$m_{x}{=}5$GeV, $m_{\phi}{=}0.5$MeV, $\alpha{=}6.74e{-}6$')
+ax1.plot(xrange,sigma(xrange,3,0.3,6.74e-6),'-',lw=1,color='tab:red',label=r'$m_{x}{=}3$GeV, $m_{\phi}{=}0.3$MeV, $\alpha{=}6.74e{-}6$')
+ax1.plot(xrange,sigma(xrange,1,0.3,6.74e-6),'-',lw=1,color='tab:blue',label=r'$m_{x}{=}1$GeV, $m_{\phi}{=}0.3$MeV, $\alpha{=}6.74e{-}6$')
+
 
 ax1.plot(xrange,np.ones(len(xrange)),'--',lw=1,color='tab:grey')
 ax1.plot(xrange,10*np.ones(len(xrange)),'--',lw=1,color='tab:grey')
 
-ax1.legend(loc=[0.0,0.6],labelspacing=0.2,handlelength=1,handletextpad=0.4,frameon=False,fontsize=10)
+ax1.legend(loc=[0.1,0.5],labelspacing=0.2,handlelength=1,handletextpad=0.4,frameon=False,fontsize=10.5)
 ax1.set_xlabel('$v$ [km/s]')
 ax1.set_ylabel('$\sigma_{T}/m_{x}$ [cm$^{2}$g$^{-1}$]')
 ax1.set_xlim([10,200])
-ax1.set_ylim([0,100])
+ax1.set_ylim([0,110])
 ax1.set_xscale('log')
 
 new_tick_locations = np.array([10,50,100,150,200])
