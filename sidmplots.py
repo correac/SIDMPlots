@@ -5,7 +5,7 @@ Description here
 import os
 import h5py
 import glob
-from scatter_rate import plot_cosmic_scatter_rate
+from scatter_rate import plot_cosmic_scatter_rate, output_cosmic_scatter_rate
 from HMF import make_HMF, HMF_output_files
 from plotter import output_cM_vMax_relations, \
     plot_relations, output_halo_profiles, plot_halo_profiles, \
@@ -59,10 +59,10 @@ class SimInfo:
 
 def sidmplots(siminfo):
 
-    #plot_cosmic_scatter_rate(siminfo,output_path)
+    output_cosmic_scatter_rate(siminfo)
     #HMF_output_files(siminfo)
     #output_cM_vMax_relations(siminfo)
-    output_halo_profiles(siminfo)
+    #output_halo_profiles(siminfo)
     #make_diversity_data(siminfo)
     #plot_individual_profiles(siminfo)
     #output_particles_cross_section(siminfo)
@@ -91,12 +91,13 @@ if __name__ == '__main__':
         siminfo = SimInfo(directory, snap_number, output_path, sim_name)
 
         # Run SIDMplots
-        #sidmplots(siminfo)
+        sidmplots(siminfo)
 
         # Make initial website
-        if sims == 0: web = make_web(siminfo)
-        if sims > 0: add_metadata_to_web(web, siminfo)
+        #if sims == 0: web = make_web(siminfo)
+        #if sims > 0: add_metadata_to_web(web, siminfo)
 
+    #plot_cosmic_scatter_rate(siminfo, name_list)
     #make_HMF(siminfo, name_list)
     #plot_relations(siminfo, name_list)
     #plot_halo_profiles(siminfo, name_list, "centrals")
@@ -107,7 +108,7 @@ if __name__ == '__main__':
 
     # After making individual plots finish up the website
     # Load galaxy plots
-    loadPlots(web, siminfo)
+    #loadPlots(web, siminfo)
 
     # Finish and output html file
-    render_web(web, siminfo.output_path)
+    #render_web(web, siminfo.output_path)

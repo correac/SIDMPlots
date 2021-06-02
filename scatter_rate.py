@@ -144,10 +144,15 @@ def cosmic_scatter_rate(siminfo):
     return redshift, scatter_rate
 
 
-
-def plot_cosmic_scatter_rate(siminfo,output_path):
+def output_cosmic_scatter_rate(siminfo):
 
     redshift, scatter_rate = cosmic_scatter_rate(siminfo)
+
+    np.savetxt(f"{siminfo.output_path}/Cosmic_scatter_rate_" + siminfo.name + ".txt",
+               np.transpose([redshift, scatter_rate]))
+
+
+def plot_cosmic_scatter_rate(siminfo, name_list):
 
     #######################
     # Plot parameters
@@ -189,7 +194,14 @@ def plot_cosmic_scatter_rate(siminfo,output_path):
     plot(1 + z, analytic_solution, '-', lw=1.5, color='tab:red',
          label=r'Analytic (m$_{\mathrm{halo}}{>}10^{11}$M$_{\odot}$)')
 
-    plot(1 + redshift, scatter_rate, '-', color='grey', label=r'SWIFT')
+    k = 0
+    color = ['black', 'tab:grey']
+    for name in name_list:
+        data = np.loadtxt(f"{siminfo.output_path}/Cosmic_scatter_rate_" + name + ".txt")
+        redshift = data[:,0]
+        scatter_rate = data[:,1]
+        plot(1 + redshift, scatter_rate, '-', color=color[k], label=name)
+        k += 1
 
     xscale('log')
     xlabel('$1+z$')
@@ -198,5 +210,5 @@ def plot_cosmic_scatter_rate(siminfo,output_path):
     plt.legend(loc=[0.45, 0.65], labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
     # axis([1,50,0,0.1])
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.savefig(output_path+"Cosmic_scatter_rate.png")#, dpi=200)
+    plt.savefig(f"{siminfo.output_path}/Cosmic_scatter_rate.png", dpi=200)
     plt.clf()

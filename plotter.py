@@ -271,8 +271,9 @@ def analyse_halo(mass, pos, vel, sigma):
     velocity = np.sqrt(std_vel_x ** 2 + std_vel_y ** 2 + std_vel_z ** 2) / np.sqrt(3.)
     velocity[np.where(np.isnan(velocity))[0]] = 0
 
-    nozero = sigma > 0
-    sigma, _, _ = stat.binned_statistic(x=r[nozero], values=sigma[nozero], statistic="median", bins=radial_bins, )
+    #nozero = sigma > 0
+    #sigma, _, _ = stat.binned_statistic(x=r[nozero], values=sigma[nozero], statistic="median", bins=radial_bins, )
+    sigma, _, _ = stat.binned_statistic(x=r, values=sigma, statistic="median", bins=radial_bins, )
     sigma[np.where(np.isnan(sigma))[0]] = 0
     return density, velocity, sigma
 
