@@ -119,7 +119,9 @@ def analytic_scatter(siminfo, z, Mmin, Mmax):
 def cosmic_scatter_rate(siminfo):
 
     unit = 3.085677e19 / (3600 * 24 * 365.25 * 1e9) # Gyr
-    sim = h5py.File(siminfo.snapshot(0), "r")
+
+    snapshot = os.path.join(siminfo.folder,"snapshot_0000.hdf5")
+    sim = h5py.File(snapshot, "r")
     old_time = sim["/Cosmology"].attrs["Universe age [internal units]"] * unit
     n_sidm_events = sim["/PartType1/SIDM_events"][:]
     nparts = len(n_sidm_events)
@@ -130,7 +132,8 @@ def cosmic_scatter_rate(siminfo):
 
     for i in range(1,siminfo.n_snapshots+1):
 
-        sim = h5py.File(siminfo.snapshot(i), "r")
+        snapshot = os.path.join(siminfo.folder, "snapshot_%04i.hdf5"%i)
+        sim = h5py.File(snapshot, "r")
         n_sidm_events = sim["/PartType1/SIDM_events"][:]
         redshift[i] = sim["/Header"].attrs["Redshift"]
         time = sim["/Cosmology"].attrs["Universe age [internal units]"] * unit
