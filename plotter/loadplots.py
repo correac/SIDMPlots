@@ -6,6 +6,21 @@ def loadPlots(web, siminfo):
     PlotsInWeb = PlotsInPipeline()
 
     # Adding plots
+    title = "Cosmic Scatter Rate"
+    caption = ""
+    filename = "Cosmic_scatter_rate.png"
+    id = abs(hash("ScatterRate"))
+    PlotsInWeb.load_plots(title, caption, filename, id)
+
+    # Setting section
+    title = "Cosmic Scatter Rate"
+    id = abs(hash("CosmicScatterRate"))
+    plots = PlotsInWeb.plots_details
+    caption = " "
+    add_web_section(web, title, caption, id, plots)
+    PlotsInWeb.reset_plots_list()
+
+    # Adding plots
     title = "Halo Mass Function"
     caption = ""
     filename = "HMF_%04d.png" % siminfo.n_snapshots
@@ -66,13 +81,13 @@ def loadPlots(web, siminfo):
     title = "Density profiles (Central haloes)"
     caption = ""
     filename = "Density_profiles_halos.png"
-    id = abs(hash("Density profiles halos"))
+    id = abs(hash("Density profiles central halos"))
     PlotsInWeb.load_plots(title, caption, filename, id)
 
     title = "Density profiles (Subhaloes)"
     caption = ""
     filename = "Density_profiles_subhalos.png"
-    id = abs(hash("Density profiles halos"))
+    id = abs(hash("Density profiles subhalos"))
     PlotsInWeb.load_plots(title, caption, filename, id)
 
     # Setting section
@@ -86,13 +101,13 @@ def loadPlots(web, siminfo):
     title = "Cross-section profiles (Central haloes)"
     caption = ""
     filename = "Cross_section_profiles_halos.png"
-    id = abs(hash("Cross section profiles halos"))
+    id = abs(hash("Cross section profiles central halos"))
     PlotsInWeb.load_plots(title, caption, filename, id)
 
     title = "Cross-section profiles (Subhaloes)"
     caption = ""
     filename = "Cross_section_profiles_subhalos.png"
-    id = abs(hash("Cross section profiles halos"))
+    id = abs(hash("Cross section profiles subhalos"))
     PlotsInWeb.load_plots(title, caption, filename, id)
 
     # Setting section

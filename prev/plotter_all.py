@@ -5,9 +5,42 @@ import h5py
 import numpy as np
 from pylab import *
 import matplotlib.pyplot as plt
-from scatter_rate import calc_density, sigma_1D
+from scatter_rate import sigma_1D
 import scipy.stats as stat
+import time
 
+def calc_density(x, M, z, siminfo):
+    Om = siminfo.Om
+    Ol = 1. - Om
+    rho_crit = siminfo.rhocrit0 * (Om * (1. + z) ** 3 + Ol)
+    R200 = M / (4. * np.pi * 200 * rho_crit / 3.)
+    R200 = R200 ** (1. / 3.)  # Mpc
+    R200 *= 1e3  # kpc
+
+    # NFW profile #
+    c = c_M_relation(M)
+    a = R200 / c
+    delta = 200. / 3.
+    delta *= c ** 3 / (np.log(1. + c) - c / (1. + c))
+    f = np.zeros(len(x))
+    for i in range(0, len(x)): f[i] = rho_crit * delta * 1e-9 / ((x[i] / a) * (1. + x[i] / a) ** 2)
+    return f
+
+def c_M_relation(M0):
+    """
+    Concentration-mass relation from Correa et al. (2015).
+    This relation is most suitable for Planck cosmology.
+    """
+    log_M0 = np.log10(M0)
+    z = 0
+    # Best-fit params:
+    alpha = 1.7543 - 0.2766 * (1. + z) + 0.02039 * (1. + z) ** 2
+    beta = 0.2753 + 0.0035 * (1. + z) - 0.3038 * (1. + z) ** 0.0269
+    gamma = -0.01537 + 0.02102 * (1. + z) ** (-0.1475)
+
+    log_10_c200 = alpha + beta * log_M0 * (1. + gamma * log_M0 ** 2)
+    c200 = 10 ** log_10_c200
+    return c200
 
 def median_relations(x, y, xrange):
 
@@ -43,9 +76,9 @@ def output_cM_vMax_relations(siminfo):
     subtype = g["Structuretype"][:]
     centrals = subtype == 10
 
-    mass = mass[centrals]
-    c200 = c200[centrals]
-    Vmax = Vmax[centrals]
+    #mass = mass[centrals]
+    #c200 = c200[centrals]
+    #Vmax = Vmax[centrals]
 
     np.savetxt(f"{siminfo.output_path}/cMVmax_" + siminfo.name + ".txt",
                np.transpose([mass, c200, Vmax]))
@@ -111,11 +144,11 @@ def output_particles_cross_section(siminfo):
     plt.plot(xvalues, yvalues, '-', lw=1.5, color='tab:blue', zorder=10,label=siminfo.name)
     plt.fill_between(xvalues, yvalues_err_down, yvalues_err_up, alpha=0.2, color='tab:blue')
 
-    plt.plot(xvalues, sigma(xvalues, 3.0,0.3,6.74e-6), '-', lw=2, color='tab:green',
-             label=r'$m_{x}{=}3.0$GeV, $m_{\phi}{=}0.3$MeV, $\alpha{=}6.74e{-}6$')
+    plt.plot(xvalues, sigma(xvalues, 3.604, 0.45, 1.63e-5), '-', lw=2, color='tab:green',
+             label=r'$m_{x}{=}3.604$GeV, $m_{\phi}{=}0.45$MeV, $\alpha{=}1.63e{-}5$')
 
 
-    plt.axis([1, 1e3, 0, 60])
+    plt.axis([1, 1e3, 0, 100])
     plt.xlabel("Velocity dispersion [km/s]")
     plt.ylabel("Cross section [cm$^{2}$/g]")
     plt.xscale('log')
@@ -255,15 +288,15 @@ def bin_centers(radial_bins):
 
 def analyse_halo(mass, pos, vel, sigma):
     # Define radial bins [log scale, kpc units]
-    radial_bins = np.arange(0, 3, 0.1)
+    radial_bins = np.arange(-1, 3, 0.1)
     radial_bins = 10 ** radial_bins
     centers = bin_centers(radial_bins)  # kpc
 
     # Radial coordinates [kpc units]
     r = np.sqrt(np.sum(pos ** 2, axis=1))
 
-    SumMasses, _, _ = stat.binned_statistic(x=r, values=np.ones(len(r)) * mass[0], statistic="sum", bins=radial_bins, )
-    density = (SumMasses / bin_volumes(radial_bins))  # Msun/kpc^3
+    SumMasses, _, _ = stat.binned_statistic(x=r, values=np.ones(len(r)), statistic="sum", bins=radial_bins, )
+    density = (SumMasses * mass / bin_volumes(radial_bins))  # Msun/kpc^3
 
     std_vel_x, _, _ = stat.binned_statistic(x=r, values=vel[:, 0], statistic="std", bins=radial_bins, )
     std_vel_y, _, _ = stat.binned_statistic(x=r, values=vel[:, 1], statistic="std", bins=radial_bins, )
@@ -281,7 +314,7 @@ def analyse_halo(mass, pos, vel, sigma):
 def read_data(siminfo, option):
 
     with h5py.File(siminfo.snapshot, "r") as hf:
-        mass = hf['PartType1/Masses'][:] * 1e10  # Msun
+        particles_mass = hf['PartType1/Masses'][0] * 1e10  # Msun
         pos = hf['PartType1/Coordinates'][:][:] * siminfo.a
         vel = hf['PartType1/Velocities'][:][:]
         cross_section = hf["PartType1/Cross_section"][:]
@@ -292,6 +325,7 @@ def read_data(siminfo, option):
         vel *= unit_length_in_cgs / unit_time_in_cgs  # cm/s
         vel *= 1e-5  # km/s
         cross_section *= unit_length_in_cgs ** 2 / unit_mass_in_cgs  # cm^2/g
+        #cross_section = np.ones(len(mass))
 
     snapshot_file = h5py.File(siminfo.snapshot, "r")
     group_file = h5py.File(siminfo.catalog_groups, "r")
@@ -313,7 +347,7 @@ def read_data(siminfo, option):
     CoP[:, 2] = zCoP
     Type = properties_file["Structuretype"][:]
 
-    radial_bins = np.arange(0, 3, 0.1)
+    radial_bins = np.arange(-1, 3, 0.1)
     radial_bins = 10 ** radial_bins
     centers = bin_centers(radial_bins)  # kpc
 
@@ -327,9 +361,9 @@ def read_data(siminfo, option):
     M200 = np.zeros(3)
 
     for i in range(0, 3):
-        if i == 0: select_halos = np.where((m200c >= 8.9) & (m200c <= 9.1))[0]  # >10 star parts
-        if i == 1: select_halos = np.where((m200c >= 9.9) & (m200c <= 10.1))[0]  # >10 star parts
-        if i == 2: select_halos = np.where((m200c >= 10.9) & (m200c <= 11.1))[0]  # >10 star parts
+        if i == 0: select_halos = np.where((m200c >= 8.9) & (m200c <= 9.1))[0]
+        if i == 1: select_halos = np.where((m200c >= 9.9) & (m200c <= 10.1))[0]
+        if i == 2: select_halos = np.where((m200c >= 10.9) & (m200c <= 11.1))[0]
 
         if option == "centrals":
             centrals = np.where(Type[select_halos] == 10)[0]
@@ -338,10 +372,10 @@ def read_data(siminfo, option):
             satellites = np.where(Type[select_halos] > 10)[0]
             select_halos = select_halos[satellites]
 
-
-        if len(select_halos) >= 10:
-            select_random = np.random.random_integers(len(select_halos)-1, size=(10))
-            select_halos = select_halos[select_random]
+        print('sample', len(select_halos), option, siminfo.snapshot)
+        if len(select_halos) >= 100:
+           select_random = np.random.random_integers(len(select_halos)-1, size=(30))
+           select_halos = select_halos[select_random]
 
         rs[i] = np.median(R200c[select_halos] / c200c[select_halos]) # kpc
         M200[i] = np.median(10 ** m200c[select_halos])
@@ -350,34 +384,54 @@ def read_data(siminfo, option):
         density_all = np.zeros((len(centers), num_halos))
         velocity_all = np.zeros((len(centers), num_halos))
         sigma_all = np.zeros((len(centers), num_halos))
+        num_particles = len(cross_section)
+        particles_pos = np.zeros((num_particles,3))
 
         for halo in range(0, num_halos):
 
             halo_j = select_halos[halo]
+            print(halo)
 
             # Grab the start position in the particles file to read from
-            halo_start_position = group_file["Offset"][halo_j]
-            halo_end_position = group_file["Offset"][halo_j + 1]
-            particle_ids_in_halo = particles_file["Particle_IDs"][halo_start_position:halo_end_position]
-            particle_ids_from_snapshot = snapshot_file["PartType1/ParticleIDs"][...]
+            # halo_start_position = group_file["Offset"][halo_j]
+            # halo_end_position = group_file["Offset"][halo_j + 1]
+            # particle_ids_in_halo = particles_file["Particle_IDs"][halo_start_position:halo_end_position]
+            # particle_ids_from_snapshot = snapshot_file["PartType1/ParticleIDs"][...]
+            #
+            # _, indices_v, indices_p = np.intersect1d(particle_ids_in_halo,
+            #                                          particle_ids_from_snapshot,
+            #                                          assume_unique=True,
+            #                                          return_indices=True, )
 
-            _, indices_v, indices_p = np.intersect1d(particle_ids_in_halo,
-                                                     particle_ids_from_snapshot,
-                                                     assume_unique=True,
-                                                     return_indices=True, )
-
-            particles_mass = mass[indices_p].copy()
-            particles_pos = pos[indices_p, :].copy()
-            particles_pos -= CoP[halo_j, :]  # centering
+            start = time.time()
+            particles_pos[:,0] = pos[:,0] - CoP[halo_j, 0]  # centering
+            particles_pos[:,1] = pos[:,1] - CoP[halo_j, 1]  # centering
+            particles_pos[:,2] = pos[:,2] - CoP[halo_j, 2]  # centering
             particles_pos *= 1e3  # kpc
-            particles_vel = vel[indices_p, :].copy()
-            particles_sigma = cross_section[indices_p].copy()
-            if len(particles_mass) == 0: continue
+            end = time.time()
+            print('particles diff done took', end - start)
 
+            start = time.time()
+            distance = np.linalg.norm(particles_pos[:,:3],axis=1)
+            end = time.time()
+            print('distance took', end - start)
+
+            start = time.time()
+            within_500kpc = distance <= 500.
+            particles_vel = vel[within_500kpc, :]
+            particles_pos = particles_pos[within_500kpc,:]
+            particles_sigma = cross_section[within_500kpc]
+            end = time.time()
+            print('particle selection took', end - start)
+            #if len(particles_mass) == 0: continue
+
+            start = time.time()
             density_halo, velocity_halo, sigma_halo = analyse_halo(particles_mass, particles_pos, particles_vel, particles_sigma)
             density_all[:, halo] = density_halo
             velocity_all[:, halo] = velocity_halo
             sigma_all[:, halo] = sigma_halo
+            end = time.time()
+            print('density calculation took', end - start)
 
         density[:, i] = np.mean(density_all[:, :], axis=1)
         sig_density[:, i] = np.std(density_all[:, :], axis=1)
@@ -450,7 +504,7 @@ def plot_halo_profiles(siminfo, name_list, option):
     figure()
 
     z = siminfo.z  # Redshift
-    radial_bins = np.arange(0, 3, 0.1)
+    radial_bins = np.arange(-1, 3, 0.1)
     radial_bins = 10 ** radial_bins
     centers = bin_centers(radial_bins)  # kpc
 
@@ -486,7 +540,7 @@ def plot_halo_profiles(siminfo, name_list, option):
         M200 = data[:, 1]
         rs = data[:, 0]
 
-        NFWrho = calc_density(centers, M200[i], rs[i], z, siminfo)  # Msun/kpc^3
+        NFWrho = calc_density(centers, M200[i], z, siminfo)  # Msun/kpc^3
         plt.plot(centers, NFWrho, lw=1, color='black', label="NFW profile")
 
         mass = np.log10(M200[i])
@@ -496,7 +550,7 @@ def plot_halo_profiles(siminfo, name_list, option):
         yarray = np.array([1e3, 1e9])
         plt.plot(xarray, yarray, '--', color='grey')
         plt.ylim(1e3, 1e9)
-        plt.xlim(1, 1e3)
+        plt.xlim(0.1, 1e3)
         plt.xscale("log")
         plt.yscale("log")
         plt.xlabel("Radius [kpc]")
@@ -534,7 +588,7 @@ def plot_halo_profiles(siminfo, name_list, option):
         plt.plot(centers, NFWsig1D, lw=1, color='black')
 
         #plt.ylim(0, 80)
-        plt.xlim(1, 1e3)
+        plt.xlim(0.1, 1e3)
         plt.xscale("log")
         plt.xlabel("Radius [kpc]")
         plt.ylabel("Velocity dispersion [km/s]")
@@ -570,7 +624,7 @@ def plot_cross_section_profiles(siminfo, name_list, option):
     figure()
 
     z = siminfo.z  # Redshift
-    radial_bins = np.arange(0, 3, 0.1)
+    radial_bins = np.arange(-1, 3, 0.1)
     radial_bins = 10 ** radial_bins
     centers = bin_centers(radial_bins)  # kpc
 
@@ -610,8 +664,8 @@ def plot_cross_section_profiles(siminfo, name_list, option):
         xarray = np.array([2.3, 2.3])
         yarray = np.array([0,90])
         plt.plot(xarray, yarray, '--', color='grey')
-        plt.ylim(0, 50)
-        plt.xlim(1, 1e3)
+        #plt.ylim(0, 50)
+        plt.xlim(0.1, 1e3)
         plt.xscale("log")
         plt.xlabel("Radius [kpc]")
         plt.ylabel("Cross section [cm$^{2}$/g]")
@@ -647,7 +701,7 @@ def plot_cross_section_profiles(siminfo, name_list, option):
         plt.plot(centers, NFWsig1D, lw=1, color='black')
 
         #plt.ylim(0, 80)
-        plt.xlim(1, 1e3)
+        plt.xlim(0.1, 1e3)
         plt.xscale("log")
         plt.xlabel("Radius [kpc]")
         plt.ylabel("Velocity dispersion [km/s]")
@@ -848,7 +902,7 @@ def plot_individual_profiles(siminfo,output_path):
             density = density_main_12
             density_sub = density_sub_12
 
-        NFWrho = calc_density(centers, M200[i], rs[i], z, siminfo)  # Msun/kpc^3
+        NFWrho = calc_density(centers, M200[i], z, siminfo)  # Msun/kpc^3
         plt.plot(centers, NFWrho, lw=1, color='black', label="NFW profile")
 
         for k in range(len(density[0,:])):

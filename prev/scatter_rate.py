@@ -161,8 +161,8 @@ def plot_cosmic_scatter_rate(siminfo, name_list):
     # Plot parameters
     params = {
         "font.size": 12,
-    #    "font.family": "Times",
-    #    "text.usetex": True,
+        "font.family": "Times",
+        "text.usetex": True,
         "figure.figsize": (5, 4),
         "figure.subplot.left": 0.15,
         "figure.subplot.right": 0.95,

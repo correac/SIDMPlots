@@ -1,26 +1,37 @@
 #!/bin/bash
 
 # Runs SIDMPlots using the following variables:
+python3 -i track_evolution.py \
+-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaVelDep20Isotropic \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n DML025N752SigmaVelDep20Isotropic \
+-o ~/SimulationData/mahti/L025N752/DMONLY/plots/
 
-python sidmplots.py \
--d /projects/0/einf180/Cosmo_Volumes/L025boxSIDMTests/L025N376/L025N376_sigma_1/Hydro /projects/0/einf180/Cosmo_Volumes/L025boxSIDMTests/L025N376/L025N376_sigma_1/DM-only/data \
--s 51 51 \
--n Sigma01Hydro Sigma01DMONLY \
--o /projects/0/einf180/Cosmo_Volumes/L025boxSIDMTests/L025N376/L025N376_sigma_1/Comparison
+#python3 sidmplots.py \
+#-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaConstant00 \
+#-s snapshot_0036.hdf5 \
+#-c subhalo_0036.properties \
+#-n DML025N752SigmaConstant00 \
+#-o ~/SimulationData/mahti/L025N752/DMONLY/plots/
 
-#python sidmplots.py \
-#-d ~/SimulationData/cartesius/L025N376/SigmaVel45 \
-#-s 60 \
-#-n SigmaVel45 \
-#-o ~/SimulationData/cartesius/L025N376/SigmaVel45/plots
+#python3 sidmplots.py \
+#-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaVelDep20Isotropic \
+#-s snapshot_0036.hdf5 \
+#-c subhalo_0036.properties \
+#-n DML025N752SigmaVelDep20Isotropic \
+#-o ~/SimulationData/mahti/L025N752/DMONLY/plots/
 
-#folder="/projects/0/einf180/Cosmo_Volumes/L025boxSIDMTests/L025N256/L025N256_sigma_vel/sigma15_w090"
-#output="/home/ccorrea/SIDMPlots/plots/L025N256_sigma15/"
-#name="L025N256"
-#snap="60"
+#python3 sidmplots.py \
+#-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaConstant00 ~/SimulationData/mahti/L025N752/DMONLY/SigmaConstant10 \
+#-s snapshot_0036.hdf5 snapshot_0036.hdf5 \
+#-c subhalo_0036.properties subhalo_0036.properties \
+#-n DML025N752SigmaConstant00 DML025N752SigmaConstant10 \
+#-o ~/SimulationData/mahti/L025N752/DMONLY/plots/
 
-#python extract_profile_cosmo_box.py -d=$folder -s=$snap -n=$name -o=$output
-#python extract_individual_profiles.py -d=$folder -s=$snap -n=$name -o=$output
-#python sidmplots.py -d=$folder -s=$snap -n=$name -o=$output
-
-
+#python3 sidmplots.py \
+#-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaConstant01 ~/SimulationData/mahti/L025N752/DMONLY/SigmaConstant10 \
+#-s snapshot_0036.hdf5 snapshot_0036.hdf5 \
+#-c subhalo_0036.properties subhalo_0036.properties \
+#-n DML025N752SigmaConstant01 DML025N752SigmaConstant10 \
+#-o ~/SimulationData/mahti/L025N752/DMONLY/plots/

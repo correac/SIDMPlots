@@ -50,7 +50,19 @@ parser.add_argument(
     default=None,
 )
 
+parser.add_argument(
+    "-t",
+    "--type",
+    help="Type of simulation, Hydro or DMONLY. Default DMONLY.",
+    required=False,
+    type=str,
+    default=None,
+)
+
 args = parser.parse_args()
+
+if args.type is None:
+    args.type = "DMONLY"
 
 if args.output is None:
     args.output = args.directory[0]
