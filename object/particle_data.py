@@ -1,4 +1,5 @@
 import swiftsimio as sw
+import numpy
 import unyt
 
 
@@ -45,3 +46,13 @@ class load_particle_data:
         self.velocities = data.dark_matter.velocities.to("km/s") - origin
         self.masses = data.dark_matter.masses.to("Msun")
 
+        if (hasattr(data.dark_matter,'cross_section')):
+            unit_length_in_cgs = data.metadata.internal_code_units["Unit length in cgs (U_L)"][0]
+            unit_mass_in_cgs = data.metadata.internal_code_units["Unit mass in cgs (U_M)"][0]
+            self.cross_section = data.dark_matter.cross_section.value
+            self.cross_section *= unit_length_in_cgs ** 2 / unit_mass_in_cgs  # cm^2/g
+
+            check = numpy.isinf(self.cross_section) == True
+            self.cross_section[check] = 0
+        else:
+            self.cross_section = np.zeros(len(self.masses))

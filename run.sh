@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Runs SIDMPlots using the following variables:
-python3 -i track_evolution.py \
+#python3 -i track_evolution.py \
+python3 sidmplots.py \
 -d ~/SimulationData/mahti/L025N752/DMONLY/SigmaVelDep20Isotropic \
 -s snapshot_0036.hdf5 \
 -c subhalo_0036.properties \

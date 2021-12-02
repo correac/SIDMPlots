@@ -9,6 +9,7 @@ class make_profile_data:
     def __init__(self, log10_M200, rs, centers,
                  density, sig_density,
                  velocity, sig_velocity,
+                 sigma, sig_sigma,
                  structure_type):
         self.centers = centers
         self.log10_M200 = log10_M200
@@ -17,13 +18,17 @@ class make_profile_data:
         self.sig_density = sig_density
         self.velocity = velocity
         self.sig_velocity = sig_velocity
+        self.sigma = sigma
+        self.sig_sigma = sig_sigma
         self.structure_type = structure_type
 
-    def add_data(self, density, sig_density, velocity, sig_velocity):
+    def add_data(self, density, sig_density, velocity, sig_velocity, sigma, sig_sigma):
         self.density = np.append(self.density, density)
         self.sig_density = np.append(self.sig_density, sig_density)
         self.velocity = np.append(self.velocity, velocity)
         self.sig_velocity = np.append(self.sig_velocity, sig_velocity)
+        self.sigma = np.append(self.sigma, sigma)
+        self.sig_sigma = np.append(self.sig_sigma, sig_sigma)
 
 
 def median_relations(x, y, xrange):
@@ -65,7 +70,7 @@ def bin_centers(radial_bins):
     inner = radial_bins[:-1]
     return 0.5 * (outer + inner)
 
-def calculate_profiles(mass, pos, vel, radial_bins):
+def calculate_profiles(mass, pos, vel, sigma, radial_bins):
 
     # Radial coordinates [kpc units]
     r = np.sqrt(np.sum(pos ** 2, axis=1))
@@ -79,7 +84,9 @@ def calculate_profiles(mass, pos, vel, radial_bins):
     velocity = np.sqrt(std_vel_x ** 2 + std_vel_y ** 2 + std_vel_z ** 2) / np.sqrt(3.)
     velocity[np.where(np.isnan(velocity))[0]] = 0
 
-    return density, velocity #, sigma
+    sigma_profile, _, _ = stat.binned_statistic(x=r, values=sigma, statistic="median", bins=radial_bins, )
+
+    return density, velocity, sigma_profile
 
 def compute_density_profiles(sim_info, log10_min_mass, log10_max_mass, structure_type, profile_data):
 
@@ -102,6 +109,7 @@ def compute_density_profiles(sim_info, log10_min_mass, log10_max_mass, structure
     rs = np.median(sim_info.halo_data.scale_radius[sample]) * 1e3  # kpc
 
     num_halos = len(sample)
+    sigma_all = np.zeros((len(centers), num_halos))
     density_all = np.zeros((len(centers), num_halos))
     velocity_all = np.zeros((len(centers), num_halos))
 
@@ -110,24 +118,31 @@ def compute_density_profiles(sim_info, log10_min_mass, log10_max_mass, structure
         halo_indx = sim_info.halo_data.halo_index[sample[i]]
         part_data = particle_data.load_particle_data(sim_info, halo_indx, sample[i])
 
-        density, velocity = calculate_profiles(part_data.masses.value,
+        density, velocity, sigma = calculate_profiles(part_data.masses.value,
                                                part_data.coordinates.value,
                                                part_data.velocities.value,
+                                               part_data.cross_section,
                                                radial_bins)
 
 
+        sigma_all[:, i] = sigma
         density_all[:, i] = density
         velocity_all[:, i] = velocity
 
+    sigma = np.mean(sigma_all[:, :], axis=1)
+    sig_sigma = np.std(sigma_all[:, :], axis=1)
     density = np.mean(density_all[:, :], axis=1)
     sig_density = np.std(density_all[:, :], axis=1)
     velocity = np.mean(velocity_all[:, :], axis=1)
     sig_velocity = np.std(velocity_all[:, :], axis=1)
 
     if profile_data == None:
-        profile_data = make_profile_data(log10_M200, rs, centers, density, sig_density, velocity, sig_velocity, structure_type)
+        profile_data = make_profile_data(log10_M200, rs, centers, density, sig_density,
+                                         velocity, sig_velocity,
+                                         sigma, sig_sigma,
+                                         structure_type)
     else:
-        profile_data.add_data(density, sig_density, velocity, sig_velocity)
+        profile_data.add_data(density, sig_density, velocity, sig_velocity, sigma, sig_sigma)
 
     return profile_data
 

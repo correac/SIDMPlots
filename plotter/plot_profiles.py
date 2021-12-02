@@ -165,3 +165,82 @@ def plot_profiles(profile_data, sim_info, output_name_list):
                     output_name_list[0]+"_"+
                     output_name_list[1]+".png", dpi=200)
     plt.close()
+
+    ######################
+
+    ######################
+    figure()
+
+    ax = plt.subplot(1, 2, 1)
+    plt.grid("True")
+
+    colors = ['tab:blue', 'tab:orange']
+    counter = 0
+    k = 0
+    for name in output_name_list:
+        centers = profile_data.centers
+        density = profile_data.density[counter:counter + len(centers)]
+        sig_density = profile_data.sig_density[counter:counter + len(centers)]
+
+        plt.plot(centers, density, lw=2, color=colors[k], label=name)
+        plt.fill_between(centers, density - sig_density / 2,
+                         density + sig_density / 2, alpha=0.4,
+                         color=colors[k])
+
+        k += 1
+        counter += len(centers)
+
+    log10_M200 = profile_data.log10_M200
+    NFWrho = calc_density(centers, log10_M200, sim_info)  # Msun/kpc^3
+    plt.plot(centers, NFWrho, lw=1, color='black', label="NFW profile")
+
+    if profile_data.structure_type == 10:
+        plt.text(0.05, 0.05, 'Central haloes of $10^{%0.1f' % log10_M200 + '}$M$_{\odot}$', transform=ax.transAxes)
+    else:
+        plt.text(0.05, 0.05, 'Satellite haloes of $10^{%0.1f' % log10_M200 + '}$M$_{\odot}$', transform=ax.transAxes)
+
+    plt.plot([sim_info.softening, sim_info.softening], [1e3, 1e9], '--', lw=1, color='grey')
+
+    plt.ylim(1e4, 1e9)
+    plt.xlim(0.1, 1e3)
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.xlabel("Radius [kpc]")
+    plt.ylabel("Density [M$_{\odot}$/kpc$^{3}$]")
+    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+    plt.legend(labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+
+    ######################
+    ax = plt.subplot(1, 2, 2)
+    plt.grid("True")
+
+    counter = 0
+    k = 0
+    for name in output_name_list:
+        sigma = profile_data.sigma[counter:counter + len(centers)]
+        sig_sigma = profile_data.sig_sigma[counter:counter + len(centers)]
+
+        plt.plot(centers, sigma, lw=2, color=colors[k], label=name)
+        plt.fill_between(centers, sigma - sig_sigma / 2,
+                         sigma + sig_sigma / 2,
+                         alpha=0.4, color=colors[k])
+
+        k += 1
+        counter += len(centers)
+
+    # plt.ylim(0, 80)
+    plt.xlim(0.1, 1e3)
+    plt.xscale("log")
+    plt.xlabel("Radius [kpc]")
+    plt.ylabel("Cross section [cm$^{2}$/g]")
+    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+
+    if profile_data.structure_type == 10:
+        plt.savefig(f"{sim_info.output_path}/Cross_section_profile_%0.1f" % log10_M200 + "_halos_" +
+                    output_name_list[0] + "_" +
+                    output_name_list[1] + ".png", dpi=200)
+    else:
+        plt.savefig(f"{sim_info.output_path}/Cross_section_profile_%0.1f" % log10_M200 + "_subhalos_" +
+                    output_name_list[0] + "_" +
+                    output_name_list[1] + ".png", dpi=200)
+    plt.close()
