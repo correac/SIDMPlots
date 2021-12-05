@@ -64,16 +64,16 @@ def main(config: ArgumentParser):
 
         profile_data_centrals_9 = compute_density_profiles(
             sim_info=sim_info,
-            log10_min_mass=8.98,
-            log10_max_mass=9.01,
+            log10_min_mass=8.95,
+            log10_max_mass=9.05,
             structure_type=10,
             profile_data=profile_data_centrals_9
         )
 
         profile_data_satellites_9 = compute_density_profiles(
             sim_info=sim_info,
-            log10_min_mass=8.98,
-            log10_max_mass=9.01,
+            log10_min_mass=8.95,
+            log10_max_mass=9.05,
             structure_type=15,
             profile_data=profile_data_satellites_9
         )
@@ -110,7 +110,7 @@ def main(config: ArgumentParser):
             profile_data=profile_data_satellites_11
         )
 
-        #cosmic_scatter_rate = compute_scatter_rate(sim_info=sim_info)
+        #cosmic_scatter_rate = compute_scatter_rate(sim_info=sim_info, cosmic_scatter_rate)
 
         # plot_rotation_curve(
         #     sim_info=sim_info,

@@ -66,6 +66,9 @@ def c_M_relation(log10_M0):
 
 def plot_profiles(profile_data, sim_info, output_name_list):
 
+    joint_names = output_name_list[0]
+    if len(output_name_list)>1: joint_names += "_"+output_name_list[1]
+
     # Plot parameters
     params = {
         "font.size": 12,
@@ -158,12 +161,10 @@ def plot_profiles(profile_data, sim_info, output_name_list):
 
     if profile_data.structure_type == 10:
         plt.savefig(f"{sim_info.output_path}/Density_%0.1f"%log10_M200+"_halos_"+
-                    output_name_list[0]+"_"+
-                    output_name_list[1]+".png", dpi=200)
+                    joint_names+".png", dpi=200)
     else:
         plt.savefig(f"{sim_info.output_path}/Density_%0.1f"%log10_M200+"_subhalos_"+
-                    output_name_list[0]+"_"+
-                    output_name_list[1]+".png", dpi=200)
+                    joint_names+".png", dpi=200)
     plt.close()
 
     ######################
@@ -237,10 +238,8 @@ def plot_profiles(profile_data, sim_info, output_name_list):
 
     if profile_data.structure_type == 10:
         plt.savefig(f"{sim_info.output_path}/Cross_section_profile_%0.1f" % log10_M200 + "_halos_" +
-                    output_name_list[0] + "_" +
-                    output_name_list[1] + ".png", dpi=200)
+                    joint_names + ".png", dpi=200)
     else:
         plt.savefig(f"{sim_info.output_path}/Cross_section_profile_%0.1f" % log10_M200 + "_subhalos_" +
-                    output_name_list[0] + "_" +
-                    output_name_list[1] + ".png", dpi=200)
+                    joint_names + ".png", dpi=200)
     plt.close()

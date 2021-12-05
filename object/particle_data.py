@@ -54,5 +54,9 @@ class load_particle_data:
 
             check = numpy.isinf(self.cross_section) == True
             self.cross_section[check] = 0
+
+            self.num_sidm_events = data.dark_matter.sidm_events.value
+
         else:
-            self.cross_section = np.zeros(len(self.masses))
+            self.cross_section = numpy.zeros(sim_info.num_dm_particles)
+            self.num_sidm_events = numpy.zeros(sim_info.num_dm_particles)

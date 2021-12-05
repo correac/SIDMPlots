@@ -91,7 +91,7 @@ class SimInfo:
 
         self.rhocrit0 = 2.7754e11 * self.h ** 2  # Msun / Mpc^3
 
-        # Maximum softening for baryons
+        # Maximum softening
         self.softening = (
             self.snapshot.metadata.gravity_scheme[
                 "Maximal physical DM softening length (Plummer equivalent) [internal units]"

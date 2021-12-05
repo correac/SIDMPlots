@@ -123,7 +123,7 @@ def analytic_scatter(siminfo, z, Mmin, Mmax):
     return n  # [Gyr^-1 particle^-1]
 
 
-def compute_scatter_rate(siminfo):
+def compute_scatter_rate(siminfo, scatter_rate_data):
 
     snapshot = load(f"{siminfo.directory}/{siminfo.snapshot_base_name}"+"_%04i.hdf5"%0)
     old_time = snapshot.metadata.cosmology.hubble_time.value # Gyr
@@ -136,11 +136,12 @@ def compute_scatter_rate(siminfo):
 
     for i in range(1,siminfo.n_snapshots+1):
 
-        snapshot_file = f"{siminfo.directory}/{siminfo.snapshot_base_name}" + "_%04i.hdf5" % i
-        with h5py.File(snapshot_file, "r") as sim:
-            n_sidm_events = np.sum(sim["/PartType1/SIDM_events"][:])
-
         snapshot = load(f"{siminfo.directory}/{siminfo.snapshot_base_name}" + "_%04i.hdf5" %i)
+        if (hasattr(snapshot.dark_matter,'sidm_events')):
+            n_sidm_events = np.sum(snapshot.dark_matter.sidm_events.value)
+        else:
+            n_sidm_events = 0
+
         redshift[i] = snapshot.metadata.redshift
         time = snapshot.metadata.cosmology.hubble_time.value # Gyr
         delta_time = time - old_time # Gyr
@@ -151,12 +152,12 @@ def compute_scatter_rate(siminfo):
         scatter_rate[i] = n_collisions / ( delta_time * nparts )
 
 
-    if scatter_rate == None:
-        scatter_rate = make_cosmic_scatter_rate(redshift, scatter_rate)
+    if scatter_rate_data == None:
+        scatter_rate_data = make_cosmic_scatter_rate(redshift, scatter_rate)
     else:
-        scatter_rate.add_data(scatter_rate)
+        scatter_rate_data.add_data(scatter_rate)
 
-    return scatter_rate
+    return scatter_rate_data
 
 
 def plot_cosmic_scatter_rate(cosmic_scatter_rate, siminfo, output_name_list):
@@ -207,7 +208,6 @@ def plot_cosmic_scatter_rate(cosmic_scatter_rate, siminfo, output_name_list):
     for name in output_name_list:
         redshift = cosmic_scatter_rate.redshift
         scatter = cosmic_scatter_rate.scatter_rate[counter:counter+len(redshift)]
-
         plot(1 + redshift, scatter, '-', color=color[k], label=name)
         k += 1
         counter += len(redshift)
