@@ -70,6 +70,50 @@ def calc_NFW_vcirc(r, log10_M, c, siminfo):
     Vcirc = np.sqrt(Vcirc) # km/s
     return Vcirc
 
+def NFW_curve(M200c, siminfo):
+
+    # Define radial bins [log scale, kpc units]
+    radial_bins = np.arange(0.2, 25, 0.25)
+    r = bin_centers(radial_bins)  # kpc
+
+    Msun_in_cgs = 1.98848e33
+    kpc_in_cgs = 3.08567758e21
+    G = 6.67408e-11 # m^3 kg^-1 s^-2
+    G *= (1e2)**3/1e3 # cm^3 g^-1 s^-2
+    G /= kpc_in_cgs**3
+    G *= Msun_in_cgs # kpc^3 Msun^-1 s^-2
+
+
+    z = siminfo.z
+    Om = siminfo.Omega_m
+    Ol = siminfo.Omega_l
+    rho_crit = siminfo.rhocrit0 * (Om * (1. + z) ** 3 + Ol)
+    R200 = 10**M200c / (4. * np.pi * 200 * rho_crit / 3.)
+    R200 = R200 ** (1. / 3.)  # Mpc
+    R200 *= 1e3  # kpc
+
+    c = c_M_relation(M200c)
+
+    Vmax = np.zeros(len(R200))
+    Vcirc_2kpc = np.zeros(len(R200))
+    for i in range(len(R200)):
+
+        x = r / R200[i]
+        gcx = np.log(1. + c[i] * x) - c[i] * x / (1. + c[i] * x)
+        gc = np.log(1. + c[i]) - c[i] / (1. + c[i])
+        mass = 200 * 4 * np.pi * R200[i]**3 * rho_crit * 1e-9 * gcx / (3. * gc) # Msun
+
+        Vcirc = G * mass / r # kpc^2/s^2
+        Vcirc *= (kpc_in_cgs/1e5)**2 # km^2/s^2
+        Vcirc = np.sqrt(Vcirc) # km/s
+        Vmax[i] = np.max(Vcirc)
+
+        f = interpolate.interp1d(r, Vcirc)
+        Vcirc_2kpc[i] = f(2.0)
+
+    return Vmax, Vcirc_2kpc
+
+
 def bin_volumes(radial_bins):
     """Returns the volumes of the bins. """
 
@@ -373,6 +417,29 @@ def plot_rotation_curve_data(sim_info, output_name_list):
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.legend(labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
     plt.savefig(f"{sim_info.output_path}/M200_Vcirc_ratio_5_kpc_" + sim_info.simulation_name + ".png", dpi=200)
+    plt.close()
+
+    figure()
+    ax = plt.subplot(1, 1, 1)
+    plt.grid("True")
+
+    cen = Type == 10
+    sat = Type > 10
+    plt.plot(Vmax[cen], v_circ_2[cen], 'o', color='tab:orange', label='Centrals')
+    plt.plot(Vmax[sat], v_circ_2[sat], 'o', color='tab:blue', label='Satellites')
+
+    M200c = np.arange(8,12,0.1)
+    NFW_Vmax, NFW_Vcirc_2 = NFW_curve(M200c, sim_info)
+    plt.plot(NFW_Vmax, NFW_Vcirc_2,'-', lw=1, color='black',label='NFW')
+    x_range = np.arange(5, 85, 5)
+    plt.plot(x_range, x_range,'--', lw=1, color='grey')
+
+    plt.axis([10, 80, 10, 80])
+    plt.xlabel("V$_{\mathrm{max}}$ [kpc]")
+    plt.ylabel("V$_{\mathrm{c}}$(2kpc) [kpc]")
+    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+    plt.legend(labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    plt.savefig(f"{sim_info.output_path}/Vmax_Vcirc_2_kpc_" + sim_info.simulation_name + ".png", dpi=200)
     plt.close()
 
     # figure()

@@ -139,19 +139,19 @@ def main(config: ArgumentParser):
         #     structure_type=15
         # )
 
-        HMF_data = make_HMF(sim_info=sim_info, HMF_data=HMF_data)
-
-        halo_data = store_halo_data(sim_info=sim_info, halo_data=halo_data)
+        # HMF_data = make_HMF(sim_info=sim_info, HMF_data=HMF_data)
+        #
+        # halo_data = store_halo_data(sim_info=sim_info, halo_data=halo_data)
 
     #     make_rotation_curve_data(sim_info=sim_info,
     #                              log10_min_mass=9.0,
     #                              log10_max_mass=11.0)
     #
-    # plot_rotation_curve_data(sim_info, output_name_list=output_name_list)
+    plot_rotation_curve_data(sim_info, output_name_list=output_name_list)
 
-    plot_HMF(HMF_data, sim_info, output_name_list)
-
-    plot_relations(halo_data, sim_info, output_name_list)
+    # plot_HMF(HMF_data, sim_info, output_name_list)
+    #
+    # plot_relations(halo_data, sim_info, output_name_list)
 
     # plot_t0(sim_info)
 
