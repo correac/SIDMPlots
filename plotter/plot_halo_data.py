@@ -126,7 +126,14 @@ def plot_relations(halo_data, sim_info, name_list):
     plt.xscale('log')
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.legend(loc="upper right", labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
-    plt.savefig(f"{sim_info.output_path}/cM_relation"+ name_list[0] + "_" + name_list[1] +".png", dpi=200)
+
+    output_file = f"{sim_info.output_path}/cM_relation_"+ name_list[0]
+    if len(name_list) > 1:
+        output_file += "_" + name_list[1] +".png"
+    else:
+        output_file += ".png"
+
+    plt.savefig(output_file, dpi=200)
     plt.close()
 
     ###########
@@ -173,7 +180,14 @@ def plot_relations(halo_data, sim_info, name_list):
     plt.yscale('log')
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.legend(loc="upper right", labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
-    plt.savefig(f"{sim_info.output_path}/rsM_relation"+ name_list[0] + "_" + name_list[1] +".png", dpi=200)
+
+    output_file = f"{sim_info.output_path}/rsM_relation_"+ name_list[0]
+    if len(name_list) > 1:
+        output_file += "_" + name_list[1] +".png"
+    else:
+        output_file += ".png"
+
+    plt.savefig(output_file, dpi=200)
     plt.close()
 
 
@@ -208,5 +222,12 @@ def plot_relations(halo_data, sim_info, name_list):
     plt.yscale('log')
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.legend(loc="upper right", labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
-    plt.savefig(f"{sim_info.output_path}/VmaxM_relation"+ name_list[0] + "_" + name_list[1] +".png", dpi=200)
+
+    output_file = f"{sim_info.output_path}/VmaxM_relation_"+ name_list[0]
+    if len(name_list) > 1:
+        output_file += "_" + name_list[1] +".png"
+    else:
+        output_file += ".png"
+
+    plt.savefig(output_file, dpi=200)
     plt.close()

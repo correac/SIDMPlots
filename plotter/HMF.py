@@ -146,7 +146,14 @@ def plot_HMF(HMF_data, sim_info, name_list):
     ax.tick_params(direction='in',axis='both',which='both',pad=4.5)
     plt.yscale("log")
     plt.legend(loc="upper right",labelspacing=0.2,handlelength=1.5,handletextpad=0.4,frameon=False)
-    plt.savefig(f"{sim_info.output_path}/HMF_"+ name_list[0] + "_" + name_list[1] +".png", dpi=200)
+
+    output_file = f"{sim_info.output_path}/HMF_"+ name_list[0]
+    if len(name_list) > 1:
+        output_file += "_" + name_list[1] +".png"
+    else:
+        output_file += ".png"
+
+    plt.savefig(output_file, dpi=200)
     plt.close()
 
 
@@ -183,5 +190,12 @@ def plot_HMF(HMF_data, sim_info, name_list):
     plt.yscale("log")
     plt.legend(loc="upper right",labelspacing=0.2,handlelength=1.5,handletextpad=0.4,frameon=False)
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.savefig(f"{sim_info.output_path}/SubHMF_"+ name_list[0] + "_" + name_list[1] +".png", dpi=200)
+
+    output_file = f"{sim_info.output_path}/SubHMF_"+ name_list[0]
+    if len(name_list) > 1:
+        output_file += "_" + name_list[1] +".png"
+    else:
+        output_file += ".png"
+
+    plt.savefig(output_file, dpi=200)
     plt.close()

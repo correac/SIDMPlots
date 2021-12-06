@@ -3,11 +3,11 @@
 # Runs SIDMPlots using the following variables:
 #python3 -i track_evolution.py \
 python3 sidmplots.py \
--d ~/SimulationData/mahti/L025N752/DMONLY/SigmaVelDep20Isotropic \
+-d ~/SimulationData/mahti/L006N188/DMONLY/SigmaVelDep100Isotropic \
 -s snapshot_0036.hdf5 \
--c subhalo_0036.properties \
--n DML025N752SigmaVelDep20Isotropic \
--o ~/SimulationData/mahti/L025N752/DMONLY/plots/
+-c subhalo_0036.properties.0 \
+-n DML006N188SigmaVelDep100Isotropic \
+-o ~/SimulationData/mahti/L006N188/DMONLY/plots/
 
 #python3 sidmplots.py \
 #-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaConstant00 \

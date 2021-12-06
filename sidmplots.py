@@ -62,72 +62,86 @@ def main(config: ArgumentParser):
 
         # progenitor_index, merger_mass_ratio = build_tree(sim_info, 0)
 
-        profile_data_centrals_9 = compute_density_profiles(
-            sim_info=sim_info,
-            log10_min_mass=8.95,
-            log10_max_mass=9.05,
-            structure_type=10,
-            profile_data=profile_data_centrals_9
-        )
-
-        profile_data_satellites_9 = compute_density_profiles(
-            sim_info=sim_info,
-            log10_min_mass=8.95,
-            log10_max_mass=9.05,
-            structure_type=15,
-            profile_data=profile_data_satellites_9
-        )
-
-        profile_data_centrals_10 = compute_density_profiles(
-            sim_info=sim_info,
-            log10_min_mass=9.95,
-            log10_max_mass=10.05,
-            structure_type=10,
-            profile_data=profile_data_centrals_10
-        )
-
-        profile_data_satellites_10 = compute_density_profiles(
-            sim_info=sim_info,
-            log10_min_mass=9.95,
-            log10_max_mass=10.05,
-            structure_type=15,
-            profile_data=profile_data_satellites_10
-        )
-
-        profile_data_centrals_11 = compute_density_profiles(
-            sim_info=sim_info,
-            log10_min_mass=10.9,
-            log10_max_mass=11.1,
-            structure_type=10,
-            profile_data=profile_data_centrals_11
-        )
-
-        profile_data_satellites_11 = compute_density_profiles(
-            sim_info=sim_info,
-            log10_min_mass=10.9,
-            log10_max_mass=11.1,
-            structure_type=15,
-            profile_data=profile_data_satellites_11
-        )
+        # profile_data_centrals_9 = compute_density_profiles(
+        #     sim_info=sim_info,
+        #     log10_min_mass=8.95,
+        #     log10_max_mass=9.05,
+        #     structure_type=10,
+        #     profile_data=profile_data_centrals_9
+        # )
+        #
+        # profile_data_satellites_9 = compute_density_profiles(
+        #     sim_info=sim_info,
+        #     log10_min_mass=8.95,
+        #     log10_max_mass=9.05,
+        #     structure_type=15,
+        #     profile_data=profile_data_satellites_9
+        # )
+        #
+        # profile_data_centrals_10 = compute_density_profiles(
+        #     sim_info=sim_info,
+        #     log10_min_mass=9.95,
+        #     log10_max_mass=10.05,
+        #     structure_type=10,
+        #     profile_data=profile_data_centrals_10
+        # )
+        #
+        # profile_data_satellites_10 = compute_density_profiles(
+        #     sim_info=sim_info,
+        #     log10_min_mass=9.95,
+        #     log10_max_mass=10.05,
+        #     structure_type=15,
+        #     profile_data=profile_data_satellites_10
+        # )
+        #
+        # profile_data_centrals_11 = compute_density_profiles(
+        #     sim_info=sim_info,
+        #     log10_min_mass=10.9,
+        #     log10_max_mass=11.1,
+        #     structure_type=10,
+        #     profile_data=profile_data_centrals_11
+        # )
+        #
+        # profile_data_satellites_11 = compute_density_profiles(
+        #     sim_info=sim_info,
+        #     log10_min_mass=10.9,
+        #     log10_max_mass=11.1,
+        #     structure_type=15,
+        #     profile_data=profile_data_satellites_11
+        # )
 
         #cosmic_scatter_rate = compute_scatter_rate(sim_info=sim_info, cosmic_scatter_rate)
 
         # plot_rotation_curve(
         #     sim_info=sim_info,
-        #     log10_min_mass=9.95,
-        #     log10_max_mass=10.05,
+        #     log10_min_mass=8.9,
+        #     log10_max_mass=9.1,
         #     structure_type=10
         # )
         # plot_rotation_curve(
         #     sim_info=sim_info,
-        #     log10_min_mass=9.95,
-        #     log10_max_mass=10.05,
+        #     log10_min_mass=8.9,
+        #     log10_max_mass=9.1,
+        #     structure_type=15
+        # )
+        #
+        # plot_rotation_curve(
+        #     sim_info=sim_info,
+        #     log10_min_mass=9.85,
+        #     log10_max_mass=10.15,
+        #     structure_type=10
+        # )
+        #
+        # plot_rotation_curve(
+        #     sim_info=sim_info,
+        #     log10_min_mass=9.85,
+        #     log10_max_mass=10.15,
         #     structure_type=15
         # )
 
-        # HMF_data = make_HMF(sim_info=sim_info, HMF_data=HMF_data)
-        #
-        # halo_data = store_halo_data(sim_info=sim_info, halo_data=halo_data)
+        HMF_data = make_HMF(sim_info=sim_info, HMF_data=HMF_data)
+
+        halo_data = store_halo_data(sim_info=sim_info, halo_data=halo_data)
 
     #     make_rotation_curve_data(sim_info=sim_info,
     #                              log10_min_mass=9.0,
@@ -135,22 +149,22 @@ def main(config: ArgumentParser):
     #
     # plot_rotation_curve_data(sim_info, output_name_list=output_name_list)
 
-    # plot_HMF(HMF_data, sim_info, output_name_list)
+    plot_HMF(HMF_data, sim_info, output_name_list)
 
-    # plot_relations(halo_data, sim_info, output_name_list)
+    plot_relations(halo_data, sim_info, output_name_list)
 
     # plot_t0(sim_info)
 
     #plot_cosmic_scatter_rate(cosmic_scatter_rate=cosmic_scatter_rate, sim_info=sim_info, output_name_list=output_name_list)
 
-    plot_profiles(profile_data=profile_data_centrals_9, sim_info=sim_info, output_name_list=output_name_list)
-    plot_profiles(profile_data=profile_data_satellites_9, sim_info=sim_info, output_name_list=output_name_list)
-
-    plot_profiles(profile_data=profile_data_centrals_10, sim_info=sim_info, output_name_list=output_name_list)
-    plot_profiles(profile_data=profile_data_satellites_10, sim_info=sim_info, output_name_list=output_name_list)
-
-    plot_profiles(profile_data=profile_data_centrals_11, sim_info=sim_info, output_name_list=output_name_list)
-    plot_profiles(profile_data=profile_data_satellites_11, sim_info=sim_info, output_name_list=output_name_list)
+    # plot_profiles(profile_data=profile_data_centrals_9, sim_info=sim_info, output_name_list=output_name_list)
+    # plot_profiles(profile_data=profile_data_satellites_9, sim_info=sim_info, output_name_list=output_name_list)
+    #
+    # plot_profiles(profile_data=profile_data_centrals_10, sim_info=sim_info, output_name_list=output_name_list)
+    # plot_profiles(profile_data=profile_data_satellites_10, sim_info=sim_info, output_name_list=output_name_list)
+    #
+    # plot_profiles(profile_data=profile_data_centrals_11, sim_info=sim_info, output_name_list=output_name_list)
+    # plot_profiles(profile_data=profile_data_satellites_11, sim_info=sim_info, output_name_list=output_name_list)
 
     # # After making individual plots finish up the website
     # # Load galaxy plots

@@ -182,6 +182,8 @@ def make_rotation_curve_data(sim_info, log10_min_mass, log10_max_mass):
 
 def plot_rotation_curve(sim_info, log10_min_mass, log10_max_mass, structure_type):
 
+    mean_mass = 0.5 * (log10_max_mass + log10_min_mass)
+
     # Define radial bins [log scale, kpc units]
     radial_bins = np.arange(0.2, 25, 0.25)
     centers = bin_centers(radial_bins) # kpc
@@ -245,14 +247,16 @@ def plot_rotation_curve(sim_info, log10_min_mass, log10_max_mass, structure_type
     NFW_circ = calc_NFW_vcirc(centers, M200c, c200c, sim_info)
     plt.plot(centers, NFW_circ,'--',lw=2,color='black')
 
-    plt.axis([0, 20, 0, 100])
+    plt.xlim([0, 20])
+    #plt.axis([0, 20, 0, 100])
     plt.xlabel("Radius [kpc]")
     plt.ylabel("Circular velocity [km/s]")
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+    output_file = f"{sim_info.output_path}/Rotation_curve_"+sim_info.simulation_name
     if structure_type == 10:
-        plt.savefig(f"{sim_info.output_path}/Rotation_curve_"+sim_info.simulation_name+"_centrals.png", dpi=200)
+        plt.savefig(output_file+"_mass_%.1f_"%mean_mass+"centrals.png", dpi=200)
     else:
-        plt.savefig(f"{sim_info.output_path}/Rotation_curve_"+sim_info.simulation_name+"_satellites.png", dpi=200)
+        plt.savefig(output_file+"_mass_%.1f_"%mean_mass+"satellites.png", dpi=200)
     plt.close()
 
 def plot_rotation_curve_data(sim_info, output_name_list):
