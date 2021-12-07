@@ -10,6 +10,7 @@ from plotter.plot_profiles import plot_profiles
 from plotter.scatter_rate import plot_cosmic_scatter_rate, compute_scatter_rate
 from plotter.rotation_curve import plot_rotation_curve, make_rotation_curve_data
 from plotter.rotation_curve import plot_rotation_curve_data
+from plotter.rotation_curve import plot_rotation_relative_to_CDM
 from plotter.HMF import make_HMF, plot_HMF
 from plotter.plot_halo_data import store_halo_data, plot_relations
 from plotter.core_expansion import plot_t0
@@ -139,19 +140,20 @@ def main(config: ArgumentParser):
         #     structure_type=15
         # )
 
-        # HMF_data = make_HMF(sim_info=sim_info, HMF_data=HMF_data)
-        #
-        # halo_data = store_halo_data(sim_info=sim_info, halo_data=halo_data)
+        HMF_data = make_HMF(sim_info=sim_info, HMF_data=HMF_data)
 
-    #     make_rotation_curve_data(sim_info=sim_info,
-    #                              log10_min_mass=9.0,
-    #                              log10_max_mass=11.0)
-    #
-    plot_rotation_curve_data(sim_info, output_name_list=output_name_list)
+        halo_data = store_halo_data(sim_info=sim_info, halo_data=halo_data)
 
-    # plot_HMF(HMF_data, sim_info, output_name_list)
-    #
-    # plot_relations(halo_data, sim_info, output_name_list)
+        # make_rotation_curve_data(sim_info=sim_info,
+        #                          log10_min_mass=9.0,
+        #                          log10_max_mass=12.0)
+
+    #plot_rotation_curve_data(sim_info, output_name_list=output_name_list)
+    #plot_rotation_relative_to_CDM(sim_info, output_name_list=output_name_list)
+
+    plot_HMF(HMF_data, sim_info, output_name_list)
+
+    plot_relations(halo_data, sim_info, output_name_list)
 
     # plot_t0(sim_info)
 

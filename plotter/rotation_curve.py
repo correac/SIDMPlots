@@ -2,6 +2,7 @@ import numpy as np
 import h5py
 from scipy import interpolate
 import scipy.stats as stat
+from scipy.optimize import curve_fit
 from pylab import *
 from tqdm import tqdm
 from object import particle_data
@@ -69,6 +70,54 @@ def calc_NFW_vcirc(r, log10_M, c, siminfo):
     Vcirc *= (kpc_in_cgs/1e5)**2 # km^2/s^2
     Vcirc = np.sqrt(Vcirc) # km/s
     return Vcirc
+
+def NFW_curve_fiducial(M200c, siminfo):
+
+    # Define radial bins [log scale, kpc units]
+    radial_bins = np.arange(0.0, 26, 0.25)
+    r = bin_centers(radial_bins)  # kpc
+
+    Msun_in_cgs = 1.98848e33
+    kpc_in_cgs = 3.08567758e21
+    G = 6.67408e-11 # m^3 kg^-1 s^-2
+    G *= (1e2)**3/1e3 # cm^3 g^-1 s^-2
+    G /= kpc_in_cgs**3
+    G *= Msun_in_cgs # kpc^3 Msun^-1 s^-2
+
+
+    z = siminfo.z
+    Om = siminfo.Omega_m
+    Ol = siminfo.Omega_l
+    rho_crit = siminfo.rhocrit0 * (Om * (1. + z) ** 3 + Ol)
+    R200 = 10**M200c / (4. * np.pi * 200 * rho_crit / 3.)
+    R200 = R200 ** (1. / 3.)  # Mpc
+    R200 *= 1e3  # kpc
+
+    c = c_M_relation(M200c)
+
+    Vmax = np.zeros(len(R200))
+    V_fid = np.zeros(len(R200))
+    for i in range(len(R200)):
+
+        x = r / R200[i]
+        gcx = np.log(1. + c[i] * x) - c[i] * x / (1. + c[i] * x)
+        gc = np.log(1. + c[i]) - c[i] / (1. + c[i])
+        mass = 200 * 4 * np.pi * R200[i]**3 * rho_crit * 1e-9 * gcx / (3. * gc) # Msun
+
+        Vcirc = G * mass / r # kpc^2/s^2
+        Vcirc *= (kpc_in_cgs/1e5)**2 # km^2/s^2
+        Vcirc = np.sqrt(Vcirc) # km/s
+        Vmax[i] = np.max(Vcirc)
+
+        r_fid = Vmax[i] / 10.
+        if r_fid < 2.: r_fid = 2.
+        if r_fid > 25.: r_fid = 25.
+
+        f = interpolate.interp1d(r, Vcirc)
+        V_fid[i] = f(r_fid)
+
+    return Vmax, V_fid
+
 
 def NFW_curve(M200c, siminfo):
 
@@ -163,7 +212,7 @@ def calculate_density(mass, radius):
 def make_rotation_curve_data(sim_info, log10_min_mass, log10_max_mass):
 
     # Define radial bins [log scale, kpc units]
-    radial_bins = np.arange(0.2, 25, 0.25)
+    radial_bins = np.arange(0.2, 26, 0.25)
     centers = bin_centers(radial_bins) # kpc
 
     sample = np.where(
@@ -183,6 +232,7 @@ def make_rotation_curve_data(sim_info, log10_min_mass, log10_max_mass):
     v_circ_nfw_1 = np.zeros(num_halos)
     v_circ_nfw_2 = np.zeros(num_halos)
     v_circ_nfw_5 = np.zeros(num_halos)
+    v_fid = np.zeros(num_halos)
     Vmax = np.zeros(num_halos)
 
     for i in tqdm(range(num_halos)):
@@ -199,12 +249,18 @@ def make_rotation_curve_data(sim_info, log10_min_mass, log10_max_mass):
         v_circ_2[i] = f(2.0)
         v_circ_5[i] = f(5.0)
 
+        Vmax[i] = np.max(circular_velocity)
+
+        r_fid = Vmax[i] / 10.
+        if r_fid < 2.: r_fid = 2.
+        if r_fid > 25.: r_fid = 25.
+        v_fid[i] = f(r_fid)
+
         v_nfw = calc_NFW_vcirc(centers, M200c[i], c200c[i], sim_info)
         f = interpolate.interp1d(centers, v_nfw)
         v_circ_nfw_1[i] = f(1.0)
         v_circ_nfw_2[i] = f(2.0)
         v_circ_nfw_5[i] = f(5.0)
-        Vmax[i] = np.max(circular_velocity)
 
     # Output data
     filename = f"{sim_info.output_path}/Rotation_data_" + sim_info.simulation_name + ".hdf5"
@@ -220,6 +276,7 @@ def make_rotation_curve_data(sim_info, log10_min_mass, log10_max_mass):
     MH = f.create_dataset('Vcirc_nfw_1kpc', data=v_circ_nfw_1)
     MH = f.create_dataset('Vcirc_nfw_2kpc', data=v_circ_nfw_2)
     MH = f.create_dataset('Vcirc_nfw_5kpc', data=v_circ_nfw_5)
+    MH = f.create_dataset('V_fiducial', data=v_fid)
     MH = f.create_dataset('Vmax', data=Vmax)
     data_file.close()
     return
@@ -316,6 +373,7 @@ def plot_rotation_curve_data(sim_info, output_name_list):
             v_circ_nfw_1 = file["Data/Vcirc_nfw_1kpc"][:]
             v_circ_nfw_2 = file["Data/Vcirc_nfw_2kpc"][:]
             v_circ_nfw_5 = file["Data/Vcirc_nfw_5kpc"][:]
+            v_fid = file["Data/V_fiducial"][:]
             Vmax = file["Data/Vmax"][:]
 
     # Plot parameters
@@ -428,10 +486,10 @@ def plot_rotation_curve_data(sim_info, output_name_list):
     plt.plot(Vmax[cen], v_circ_2[cen], 'o', color='tab:orange', label='Centrals')
     plt.plot(Vmax[sat], v_circ_2[sat], 'o', color='tab:blue', label='Satellites')
 
-    M200c = np.arange(8,12,0.1)
-    NFW_Vmax, NFW_Vcirc_2 = NFW_curve(M200c, sim_info)
+    NFW_M200c = np.arange(8,12.1,0.1)
+    NFW_Vmax, NFW_Vcirc_2 = NFW_curve(NFW_M200c, sim_info)
     plt.plot(NFW_Vmax, NFW_Vcirc_2,'-', lw=1, color='black',label='NFW')
-    x_range = np.arange(5, 85, 5)
+    x_range = np.arange(0, 85, 5)
     plt.plot(x_range, x_range,'--', lw=1, color='grey')
 
     plt.axis([10, 80, 10, 80])
@@ -442,123 +500,328 @@ def plot_rotation_curve_data(sim_info, output_name_list):
     plt.savefig(f"{sim_info.output_path}/Vmax_Vcirc_2_kpc_" + sim_info.simulation_name + ".png", dpi=200)
     plt.close()
 
-    # figure()
-    # ax = plt.subplot(1, 1, 1)
-    # plt.grid("True")
-    #
-    # plt.plot(yrange, yrange, '--', lw=1, color='grey')
-    # plt.plot(NFW_circ_max, NFW_circ_2kpc, '-', lw=2, color='black')
-    #
-    # v_circ_median = stat.binned_statistic(x=Vmax, values=v_circ_2, statistic="median", bins=Vmax_range, )[0]
-    # v_circ_16 = stat.binned_statistic(x=Vmax, values=v_circ_2,
-    #                                   statistic=lambda v_circ_2: percentile(v_circ_2, 16), bins=Vmax_range, )[0]
-    # v_circ_84 = stat.binned_statistic(x=Vmax, values=v_circ_2,
-    #                                   statistic=lambda v_circ_2: percentile(v_circ_2, 84), bins=Vmax_range, )[0]
-    # plt.plot(Vmax_center, v_circ_median, '-')
-    # plt.fill_between(Vmax_center, v_circ_16, v_circ_84, alpha=0.4)
-    #
-    # plt.plot(Vmax, v_circ_2, 'o')
-    #
-    # plt.axis([0, 100, 0, 100])
-    # plt.xlabel("Maximum Circular Velocity [km/s]")
-    # plt.ylabel("Circular velocity at 2kpc [km/s]")
-    # ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    # if galaxy_type == "centrals":
-    #     plt.savefig(f"{siminfo.output_path}/Vmax_Vcirc_" + siminfo.name + "_2kpc_centrals.png", dpi=200)
-    # else:
-    #     plt.savefig(f"{siminfo.output_path}/Vmax_Vcirc_" + siminfo.name + "_2kpc_satellites.png", dpi=200)
-    # plt.close()
-    #
-    # figure()
-    # ax = plt.subplot(1, 1, 1)
-    # plt.grid("True")
-    #
-    # plt.plot(yrange, yrange, '--', lw=1, color='grey')
-    # plt.plot(NFW_circ_max, NFW_circ_5kpc, '-', lw=2, color='black')
-    #
-    # v_circ_median = stat.binned_statistic(x=Vmax, values=v_circ_5, statistic="median", bins=Vmax_range, )[0]
-    # v_circ_16 = stat.binned_statistic(x=Vmax, values=v_circ_5,
-    #                                   statistic=lambda v_circ_5: percentile(v_circ_5, 16), bins=Vmax_range, )[0]
-    # v_circ_84 = stat.binned_statistic(x=Vmax, values=v_circ_5,
-    #                                   statistic=lambda v_circ_5: percentile(v_circ_5, 84), bins=Vmax_range, )[0]
-    # plt.plot(Vmax_center, v_circ_median, '-')
-    # plt.fill_between(Vmax_center, v_circ_16, v_circ_84, alpha=0.4)
-    #
-    # plt.plot(Vmax, v_circ_5, 'o')
-    #
-    # plt.axis([0, 100, 0, 100])
-    # plt.xlabel("Maximum Circular Velocity [km/s]")
-    # plt.ylabel("Circular velocity at 5kpc [km/s]")
-    # ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    # if galaxy_type == "centrals":
-    #     plt.savefig(f"{siminfo.output_path}/Vmax_Vcirc_" + siminfo.name + "_5kpc_centrals.png", dpi=200)
-    # else:
-    #     plt.savefig(f"{siminfo.output_path}/Vmax_Vcirc_" + siminfo.name + "_5kpc_satellites.png", dpi=200)
-    # plt.close()
-    #
-    # ###################
-    #
-    # figure()
-    # ax = plt.subplot(1, 1, 1)
-    # plt.grid("True")
-    #
-    # plt.plot(M200c, v_circ_1, 'o')
-    # v_median, _, _ = stat.binned_statistic(x=M200c, values=v_circ_1, statistic="median", bins=mass_range, )
-    # mass = bin_centers(mass_range)
-    # plt.plot(mass, v_median, '-', lw=2, color='tab:blue')
-    # plt.plot(mass_range, NFW_circ_1kpc, '--', lw=2, color='black')
-    #
-    # plt.axis([8, 11, 0, 50])
-    # # plt.xscale('log')
-    # # plt.yscale('log')
-    # plt.xlabel("$\log_{10}$ M$_{200}$ [M$_{\odot}$]")
-    # plt.ylabel("Circular velocity at 1kpc [km/s]")
-    # ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    # if galaxy_type == "centrals":
-    #     plt.savefig(f"{siminfo.output_path}/M200_Vcirc_" + siminfo.name + "_1kpc_centrals.png", dpi=200)
-    # else:
-    #     plt.savefig(f"{siminfo.output_path}/M200_Vcirc_" + siminfo.name + "_1kpc_satellites.png", dpi=200)
-    # plt.close()
-    #
-    # figure()
-    # ax = plt.subplot(1, 1, 1)
-    # plt.grid("True")
-    #
-    # plt.plot(M200c, v_circ_2, 'o')
-    # v_median, _, _ = stat.binned_statistic(x=M200c, values=v_circ_2, statistic="median", bins=mass_range, )
-    # plt.plot(mass, v_median, '-', lw=2, color='tab:blue')
-    # plt.plot(mass_range, NFW_circ_2kpc, '--', lw=2, color='black')
-    #
-    # plt.axis([8, 11, 0, 50])
-    # # plt.xscale('log')
-    # # plt.yscale('log')
-    # plt.xlabel("$\log_{10}$ M$_{200}$ [M$_{\odot}$]")
-    # plt.ylabel("Circular velocity at 2kpc [km/s]")
-    # ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    # if galaxy_type == "centrals":
-    #     plt.savefig(f"{siminfo.output_path}/M200_Vcirc_" + siminfo.name + "_2kpc_centrals.png", dpi=200)
-    # else:
-    #     plt.savefig(f"{siminfo.output_path}/M200_Vcirc_" + siminfo.name + "_2kpc_satellites.png", dpi=200)
-    # plt.close()
-    #
-    # figure()
-    # ax = plt.subplot(1, 1, 1)
-    # plt.grid("True")
-    #
-    # plt.plot(M200c, v_circ_5, 'o')
-    # v_median, _, _ = stat.binned_statistic(x=M200c, values=v_circ_5, statistic="median", bins=mass_range, )
-    # plt.plot(mass, v_median, '-', lw=2, color='tab:blue')
-    #
-    # plt.plot(mass_range, NFW_circ_5kpc, '--', lw=2, color='black')
-    #
-    # plt.axis([8, 11, 10, 100])
-    # # plt.xscale('log')
-    # # plt.yscale('log')
-    # plt.xlabel("$\log_{10}$ M$_{200}$ [M$_{\odot}$]")
-    # plt.ylabel("Circular velocity at 5kpc [km/s]")
-    # ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    # if galaxy_type == "centrals":
-    #     plt.savefig(f"{siminfo.output_path}/M200_Vcirc_" + siminfo.name + "_5kpc_centrals.png", dpi=200)
-    # else:
-    #     plt.savefig(f"{siminfo.output_path}/M200_Vcirc_" + siminfo.name + "_5kpc_satellites.png", dpi=200)
-    # plt.close()
+    figure()
+    ax = plt.subplot(1, 1, 1)
+    plt.grid("True")
+
+    cen = Type == 10
+    sat = Type > 10
+    plt.plot(Vmax[cen], v_fid[cen], 'o', color='tab:orange', label='Centrals')
+    plt.plot(Vmax[sat], v_fid[sat], 'o', color='tab:blue', label='Satellites')
+
+    NFW_Vmax, NFW_fid = NFW_curve_fiducial(NFW_M200c, sim_info)
+    plt.plot(NFW_Vmax, NFW_fid, '-', lw=1, color='black', label='NFW')
+    x_range = np.arange(5, 85, 5)
+    plt.plot(x_range, x_range, '--', lw=1, color='grey')
+
+    plt.axis([0, 80, 0, 80])
+    plt.xlabel("V$_{\mathrm{max}}$ [km/s]")
+    plt.ylabel("V$_{\mathrm{fiducial}}$ [km/s]")
+    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+    plt.legend(labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    plt.savefig(f"{sim_info.output_path}/Vmax_V_fiducial_" + sim_info.simulation_name + ".png", dpi=200)
+    plt.close()
+
+    figure()
+    ax = plt.subplot(1, 1, 1)
+    plt.grid("True")
+
+    ratio = np.zeros(len(M200c))
+    for i in range(len(M200c)):
+        f = interpolate.interp1d(NFW_M200c, NFW_fid)
+        ratio[i] = v_fid[i] / f(M200c[i])
+
+    cen = Type == 10
+    sat = Type > 10
+    plt.plot(M200c[cen], ratio[cen], 'o', color='tab:orange', label='Centrals')
+    plt.plot(M200c[sat], ratio[sat], 'o', color='tab:blue', label='Satellites')
+
+    plt.axis([9, 11, 0.4, 2.5])
+    plt.xlabel("$\log_{10}M_{200c}$ [M$_{\odot}$]")
+    plt.ylabel("$V_{\mathrm{fid}}/V_{\mathrm{fid-NFW}}$")
+    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+    plt.legend(loc='upper right', labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    plt.savefig(f"{sim_info.output_path}/M200c_Vfid_Vmax_" + sim_info.simulation_name + ".png", dpi=200)
+    plt.close()
+
+    figure()
+    ax = plt.subplot(1, 1, 1)
+    plt.grid("True")
+
+    cen = Type == 10
+    sat = Type > 10
+    plt.plot(M200c[cen], v_circ_2[cen], 'o', color='tab:orange', label='Centrals')
+    plt.plot(M200c[sat], v_circ_2[sat], 'o', color='tab:blue', label='Satellites')
+
+    plt.plot(NFW_M200c, NFW_Vcirc_2, '-', lw=1, color='black', label='NFW')
+
+    plt.axis([9, 11, 0, 80])
+    plt.xlabel("$\log_{10}M_{200c}$ [M$_{\odot}$]")
+    plt.ylabel("V$_{\mathrm{c}}$(2kpc) [kpc]")
+    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+    plt.legend(loc='upper left',labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    plt.savefig(f"{sim_info.output_path}/M200c_Vcirc_2_kpc_" + sim_info.simulation_name + ".png", dpi=200)
+    plt.close()
+
+def function(x,a,b,c,d):
+    f = a + b*x + c*x**2 + d*x**3
+    return f
+
+def plot_rotation_relative_to_CDM(sim_info, output_name_list):
+
+    name = 'DML025N752SigmaConstant00'
+    filename = f"{sim_info.output_path}/Rotation_data_" + name + ".hdf5"
+    with h5py.File(filename, "r") as file:
+        CDM_M200c = file["Data/M200c"][:]
+        CDM_Type = file["Data/StructureType"][:]
+        CDM_v_fid = file["Data/V_fiducial"][:]
+
+    cen = np.where(CDM_Type == 10)[0]
+    sat = np.where(CDM_Type > 10)[0]
+
+    x_range = np.arange(8.9, 12.1, 0.2)
+    ydata_50 = stat.binned_statistic(x=CDM_M200c[cen], values=CDM_v_fid[cen], statistic="median", bins=x_range, )[0]
+    ydata_16 = stat.binned_statistic(x=CDM_M200c[cen], values=CDM_v_fid[cen],
+                                     statistic=lambda y: np.percentile(y, 16), bins=x_range, )[0]
+    ydata_84 = stat.binned_statistic(x=CDM_M200c[cen], values=CDM_v_fid[cen],
+                                     statistic=lambda y: np.percentile(y, 84), bins=x_range, )[0]
+    ydata_50_cen = ydata_50.copy()
+    xdata = bin_centers(x_range)
+
+    no_nan = np.isnan(ydata_50) == False
+    popt_50, pcov = curve_fit(function, xdata[no_nan]-9.0, ydata_50[no_nan], p0=[0.5, 1, 2, 1])
+    popt_16, pcov = curve_fit(function, xdata[no_nan]-9.0, ydata_16[no_nan], p0=[0.5, 1, 2, 1])
+    popt_84, pcov = curve_fit(function, xdata[no_nan]-9.0, ydata_84[no_nan], p0=[0.5, 1, 2, 1])
+
+    ydata_50 = stat.binned_statistic(x=CDM_M200c[sat], values=CDM_v_fid[sat], statistic="median", bins=x_range, )[0]
+    ydata_16 = stat.binned_statistic(x=CDM_M200c[sat], values=CDM_v_fid[sat],
+                                     statistic=lambda y: np.percentile(y, 16), bins=x_range, )[0]
+    ydata_84 = stat.binned_statistic(x=CDM_M200c[sat], values=CDM_v_fid[sat],
+                                     statistic=lambda y: np.percentile(y, 84), bins=x_range, )[0]
+    ydata_50_sat = ydata_50.copy()
+
+    no_nan = np.isnan(ydata_50) == False
+    popt_50_sat, pcov = curve_fit(function, xdata[no_nan]-9.0, ydata_50[no_nan], p0=[0.5, 1, 2, 1])
+    popt_16_sat, pcov = curve_fit(function, xdata[no_nan]-9.0, ydata_16[no_nan], p0=[0.5, 1, 2, 1])
+    popt_84_sat, pcov = curve_fit(function, xdata[no_nan]-9.0, ydata_84[no_nan], p0=[0.5, 1, 2, 1])
+
+
+    # Plot parameters
+    params = {
+        "font.size": 12,
+        "font.family": "Times",
+        "text.usetex": True,
+        "figure.figsize": (5, 3.5),
+        "figure.subplot.left": 0.15,
+        "figure.subplot.right": 0.95,
+        "figure.subplot.bottom": 0.18,
+        "figure.subplot.top": 0.95,
+        "figure.subplot.wspace": 0.45,
+        "figure.subplot.hspace": 0.35,
+        "lines.markersize": 0.5,
+        "lines.linewidth": 1.5,
+    }
+    rcParams.update(params)
+
+    figure()
+    ax = plt.subplot(1, 1, 1)
+    plt.grid("True")
+
+    plt.plot(CDM_M200c[cen], CDM_v_fid[cen], 'o', color='tab:orange', label='Centrals')
+    plt.plot(CDM_M200c[sat], CDM_v_fid[sat], 'o', color='tab:blue', label='Satellites')
+
+    plt.fill_between(xdata, function(xdata-9.0,*popt_16), function(xdata-9.0,*popt_84), alpha=0.2, color='tab:orange')
+    plt.plot(xdata, function(xdata-9.0,*popt_50),'-',lw=2,color='white')
+    plt.plot(xdata, function(xdata-9.0,*popt_50),'-',lw=1,color='tab:orange')
+    plt.plot(xdata, ydata_50_cen, '-', lw=1, color='tab:red')
+
+    plt.fill_between(xdata, function(xdata-9.0,*popt_16_sat), function(xdata-9.0,*popt_84_sat), alpha=0.2, color='tab:blue')
+    plt.plot(xdata, function(xdata-9.0,*popt_50_sat),'-',lw=2,color='white')
+    plt.plot(xdata, function(xdata-9.0,*popt_50_sat),'-',lw=1,color='tab:blue')
+    plt.plot(xdata, ydata_50_sat, '-', lw=1, color='tab:purple')
+
+    plt.axis([9, 12, 1, 500])
+    plt.yscale('log')
+    plt.xlabel("$\log_{10}M_{200c}$ [M$_{\odot}$]")
+    plt.ylabel("$V_{\mathrm{fid}}$ [km/s]")
+    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+    plt.legend(loc='upper right', labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    plt.savefig(f"{sim_info.output_path}/M200c_Vfid_test_CDM.png", dpi=200)
+    plt.close()
+
+    #######
+    # Let's look at CDM scatter
+    ratio = np.zeros(len(cen))
+    for i in range(len(cen)):
+        ratio[i] = CDM_v_fid[cen[i]] / function(CDM_M200c[cen[i]] - 9.0, *popt_50)
+
+    ydata_1_cen = stat.binned_statistic(x=CDM_M200c[cen], values=ratio,
+                                     statistic=lambda y: np.percentile(y, 1), bins=x_range, )[0]
+    ydata_99_cen = stat.binned_statistic(x=CDM_M200c[cen], values=ratio,
+                                     statistic=lambda y: np.percentile(y, 99), bins=x_range, )[0]
+    ydata_10_cen = stat.binned_statistic(x=CDM_M200c[cen], values=ratio,
+                                     statistic=lambda y: np.percentile(y, 5), bins=x_range, )[0]
+    ydata_90_cen = stat.binned_statistic(x=CDM_M200c[cen], values=ratio,
+                                     statistic=lambda y: np.percentile(y, 95), bins=x_range, )[0]
+
+    ratio = np.zeros(len(sat))
+    for i in range(len(CDM_M200c[sat])):
+        ratio[i] = CDM_v_fid[sat[i]] / function(CDM_M200c[sat[i]] - 9.0, *popt_50_sat)
+
+    ydata_1_sat = stat.binned_statistic(x=CDM_M200c[sat], values=ratio,
+                                     statistic=lambda y: np.percentile(y, 1), bins=x_range, )[0]
+    ydata_99_sat = stat.binned_statistic(x=CDM_M200c[sat], values=ratio,
+                                     statistic=lambda y: np.percentile(y, 99), bins=x_range, )[0]
+    ydata_10_sat = stat.binned_statistic(x=CDM_M200c[sat], values=ratio,
+                                     statistic=lambda y: np.percentile(y, 5), bins=x_range, )[0]
+    ydata_90_sat = stat.binned_statistic(x=CDM_M200c[sat], values=ratio,
+                                     statistic=lambda y: np.percentile(y, 95), bins=x_range, )[0]
+
+    #######
+    for name in output_name_list:
+        filename = f"{sim_info.output_path}/Rotation_data_" + name + ".hdf5"
+        with h5py.File(filename, "r") as file:
+            M200c = file["Data/M200c"][:]
+            Type = file["Data/StructureType"][:]
+            v_fid = file["Data/V_fiducial"][:]
+
+        cen = np.where(Type == 10)[0]
+        sat = np.where(Type > 10)[0]
+
+        figure()
+        ax = plt.subplot(1, 1, 1)
+        plt.grid("True")
+
+        plt.plot(M200c[cen], v_fid[cen], 'o', color='tab:orange', label='Centrals')
+        plt.plot(M200c[sat], v_fid[sat], 'o', color='tab:blue', label='Satellites')
+
+        plt.fill_between(xdata, function(xdata - 9.0, *popt_16), function(xdata - 9.0, *popt_84), alpha=0.2,
+                         color='tab:orange')
+        plt.plot(xdata, function(xdata - 9.0, *popt_50), '-', lw=2, color='white')
+        plt.plot(xdata, function(xdata - 9.0, *popt_50), '-', lw=1, color='tab:orange')
+        plt.plot(xdata, ydata_50_cen, '-', lw=1, color='tab:red')
+
+        plt.fill_between(xdata, function(xdata - 9.0, *popt_16_sat), function(xdata - 9.0, *popt_84_sat), alpha=0.2,
+                         color='tab:blue')
+        plt.plot(xdata, function(xdata - 9.0, *popt_50_sat), '-', lw=2, color='white')
+        plt.plot(xdata, function(xdata - 9.0, *popt_50_sat), '-', lw=1, color='tab:blue')
+        plt.plot(xdata, ydata_50_sat, '-', lw=1, color='tab:purple')
+
+        plt.axis([9, 12, 1, 500])
+        plt.yscale('log')
+        plt.xlabel("$\log_{10}M_{200c}$ [M$_{\odot}$]")
+        plt.ylabel("$V_{\mathrm{fid}}$ [km/s]")
+        ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+        plt.legend(loc='upper right', labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+        plt.savefig(f"{sim_info.output_path}/M200c_Vfid_test_" + sim_info.simulation_name + ".png", dpi=200)
+        plt.close()
+
+        # Plot parameters
+        params = {
+            "font.size": 12,
+            "font.family": "Times",
+            "text.usetex": True,
+            "figure.figsize": (7, 3.5),
+            "figure.subplot.left": 0.1,
+            "figure.subplot.right": 0.95,
+            "figure.subplot.bottom": 0.18,
+            "figure.subplot.top": 0.95,
+            "figure.subplot.wspace": 0.25,
+            "figure.subplot.hspace": 0.25,
+            "lines.markersize": 0.5,
+            "lines.linewidth": 1.5,
+        }
+        rcParams.update(params)
+
+        figure()
+        ax = plt.subplot(1, 2, 1)
+        plt.grid("True")
+
+        ratio = np.zeros(len(cen))
+        for i in range(len(cen)):
+            ratio[i] = v_fid[cen[i]] / function(M200c[cen[i]]-9.0,*popt_50)
+
+        plt.plot(M200c[cen], ratio, 'o', color='tab:orange', label='Centrals')#,alpha=0.5)
+        ydata = stat.binned_statistic(x=M200c[cen], values=ratio, statistic="median", bins=x_range, )[0]
+        plt.plot(np.array([9,12]), np.array([1,1]), '-', lw=1, color='darkblue')
+        plt.plot(xdata, ydata, '--', lw=1, color='black')
+
+        #plt.fill_between(xdata, ydata_1_cen, ydata_99_cen, alpha=0.3, color='lightgrey', zorder=2)
+        plt.fill_between(xdata, ydata_10_cen, ydata_90_cen, alpha=0.3, color='grey', zorder=2,label='CDM 5-95 percentiles')
+
+        plt.axis([9, 11, 0, 2.5])
+        plt.xlabel("$\log_{10}M_{200c}$ [M$_{\odot}$]")
+        plt.ylabel("$V_{\mathrm{fid}}/V_{\mathrm{fid-CDM}}$")
+        ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+        plt.legend(loc='upper right', labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+
+        ax = plt.subplot(1, 2, 2)
+        plt.grid("True")
+
+        ratio = np.zeros(len(sat))
+        for i in range(len(M200c[sat])):
+            ratio[i] = v_fid[sat[i]] / function(M200c[sat[i]] - 9.0, *popt_50_sat)
+
+        plt.plot(M200c[sat], ratio, 'o', color='tab:blue', label='Satellites')#, alpha=0.5)
+        ydata = stat.binned_statistic(x=M200c[sat], values=ratio, statistic="median", bins=x_range, )[0]
+        plt.plot(np.array([9,12]), np.array([1,1]), '-', lw=1, color='darkblue')
+        plt.plot(xdata, ydata, '--', lw=1, color='black')
+
+        #plt.fill_between(xdata, ydata_1_sat, ydata_99_sat, alpha=0.3, color='lightgrey', zorder=2)
+        plt.fill_between(xdata, ydata_10_sat, ydata_90_sat, alpha=0.3, color='grey', zorder=2,label='CDM 5-95 percentiles')
+
+        plt.axis([9, 11, 0, 2.5])
+        plt.xlabel("$\log_{10}M_{200c}$ [M$_{\odot}$]")
+        plt.ylabel("$V_{\mathrm{fid}}/V_{\mathrm{fid-CDM}}$")
+        ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+        plt.legend(loc='upper right', labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+        plt.savefig(f"{sim_info.output_path}/M200c_Vfid_Vfid_CDM_" + sim_info.simulation_name + ".png", dpi=200)
+        plt.close()
+
+        #Let's plot ratios
+
+        figure()
+        ax = plt.subplot(1, 2, 1)
+        plt.grid("True")
+
+        ratio = np.zeros(len(cen))
+        for i in range(len(cen)):
+            ratio[i] = (v_fid[cen[i]]-function(M200c[cen[i]] - 9.0, *popt_50)) / function(M200c[cen[i]] - 9.0, *popt_50)
+
+        plt.plot(M200c[cen], ratio, 'o', color='tab:orange', label='Centrals')  # ,alpha=0.5)
+        ydata = stat.binned_statistic(x=M200c[cen], values=ratio, statistic="median", bins=x_range, )[0]
+        plt.plot(np.array([9, 12]), np.array([0, 0]), '-', lw=1, color='darkblue')
+        plt.plot(xdata, ydata, '--', lw=1, color='black')
+
+        #plt.fill_between(xdata, ydata_10_cen, ydata_90_cen, alpha=0.3, color='grey', zorder=2,
+        #                 label='CDM 5-95 percentiles')
+
+        plt.axis([9, 11, -1, 2])
+        plt.xlabel("$\log_{10}M_{200c}$ [M$_{\odot}$]")
+        plt.ylabel("$(V_{\mathrm{fid}}-V_{\mathrm{fid-CDM}})/V_{\mathrm{fid-CDM}}$")
+        ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+        plt.legend(loc='upper right', labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+
+        ax = plt.subplot(1, 2, 2)
+        plt.grid("True")
+
+        ratio = np.zeros(len(sat))
+        for i in range(len(M200c[sat])):
+            ratio[i] = (v_fid[sat[i]]-function(M200c[sat[i]] - 9.0, *popt_50_sat)) / function(M200c[sat[i]] - 9.0, *popt_50_sat)
+
+        plt.plot(M200c[sat], ratio, 'o', color='tab:blue', label='Satellites')  # , alpha=0.5)
+        ydata = stat.binned_statistic(x=M200c[sat], values=ratio, statistic="median", bins=x_range, )[0]
+        plt.plot(np.array([9, 12]), np.array([0, 0]), '-', lw=1, color='darkblue')
+        plt.plot(xdata, ydata, '--', lw=1, color='black')
+
+        # plt.fill_between(xdata, ydata_1_sat, ydata_99_sat, alpha=0.3, color='lightgrey', zorder=2)
+        #plt.fill_between(xdata, ydata_10_sat, ydata_90_sat, alpha=0.3, color='grey', zorder=2,
+        #                 label='CDM 5-95 percentiles')
+
+        plt.axis([9, 11, -1, 2])
+        plt.xlabel("$\log_{10}M_{200c}$ [M$_{\odot}$]")
+        plt.ylabel("$(V_{\mathrm{fid}}-V_{\mathrm{fid-CDM}})/V_{\mathrm{fid-CDM}}$")
+        ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+        plt.legend(loc='upper right', labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+        plt.savefig(f"{sim_info.output_path}/M200c_ratio_Vfid_Vfid_CDM_" + sim_info.simulation_name + ".png", dpi=200)
+        plt.close()
