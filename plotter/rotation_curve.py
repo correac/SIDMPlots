@@ -118,6 +118,48 @@ def NFW_curve_fiducial(M200c, siminfo):
 
     return Vmax, V_fid
 
+def NFW_curve_fiducial_mass(sim_info):
+
+    masses = np.arange(9,12,0.2)
+    Vfid_mass = np.zeros(len(masses))
+
+    # Define radial bins [log scale, kpc units]
+    radial_bins = np.arange(0.2, 25, 0.25)
+    r = bin_centers(radial_bins)  # kpc
+
+    Msun_in_cgs = 1.98848e33
+    kpc_in_cgs = 3.08567758e21
+    G = 6.67408e-11 # m^3 kg^-1 s^-2
+    G *= (1e2)**3/1e3 # cm^3 g^-1 s^-2
+    G /= kpc_in_cgs**3
+    G *= Msun_in_cgs # kpc^3 Msun^-1 s^-2
+
+    z = sim_info.z
+    Om = sim_info.Omega_m
+    Ol = sim_info.Omega_l
+    rho_crit = sim_info.rhocrit0 * (Om * (1. + z) ** 3 + Ol)
+    R200 = 10**masses / (4. * np.pi * 200 * rho_crit / 3.)
+    R200 = R200 ** (1. / 3.)  # Mpc
+    R200 *= 1e3  # kpc
+
+    c = c_M_relation(masses)
+
+    for i in range(len(R200)):
+
+        x = r / R200[i]
+        gcx = np.log(1. + c[i] * x) - c[i] * x / (1. + c[i] * x)
+        gc = np.log(1. + c[i]) - c[i] / (1. + c[i])
+        mass = 200 * 4 * np.pi * R200[i]**3 * rho_crit * 1e-9 * gcx / (3. * gc) # Msun
+
+        Vcirc = G * mass / r # kpc^2/s^2
+        Vcirc *= (kpc_in_cgs/1e5)**2 # km^2/s^2
+        Vcirc = np.sqrt(Vcirc) # km/s
+
+        f = interpolate.interp1d(r, Vcirc)
+        r_fid = 2.4 * (10 ** masses[i] / 10 ** 9) ** 0.23
+        Vfid_mass[i] = f(r_fid)
+
+    return masses, Vfid_mass
 
 def NFW_curve(M200c, siminfo):
 
@@ -233,6 +275,7 @@ def make_rotation_curve_data(sim_info, log10_min_mass, log10_max_mass):
     v_circ_nfw_2 = np.zeros(num_halos)
     v_circ_nfw_5 = np.zeros(num_halos)
     v_fid = np.zeros(num_halos)
+    v_fid_mass = np.zeros(num_halos)
     Vmax = np.zeros(num_halos)
 
     for i in tqdm(range(num_halos)):
@@ -240,13 +283,13 @@ def make_rotation_curve_data(sim_info, log10_min_mass, log10_max_mass):
         halo_indx = sim_info.halo_data.halo_index[sample[i]]
         part_data = particle_data.load_particle_data(sim_info, halo_indx, sample[i])
 
-        circular_velocity = calculate_Vcirc(part_data.masses.value,
-                                       part_data.coordinates.value,
-                                       radial_bins)
+        circular_velocity = calculate_Vcirc(part_data.masses.value[part_data.bound_particles_only],
+                                            part_data.coordinates.value[part_data.bound_particles_only, :],
+                                            radial_bins)
 
         f = interpolate.interp1d(centers, circular_velocity)
         v_circ_1[i] = f(1.0)
-        v_circ_2[i] = f(2.0)
+        v_circ_2[i] = f(2.5)
         v_circ_5[i] = f(5.0)
 
         Vmax[i] = np.max(circular_velocity)
@@ -255,6 +298,11 @@ def make_rotation_curve_data(sim_info, log10_min_mass, log10_max_mass):
         if r_fid < 2.: r_fid = 2.
         if r_fid > 25.: r_fid = 25.
         v_fid[i] = f(r_fid)
+
+        r_fid = 2.4 * (10 ** M200c[i] / 10 ** 9) ** 0.23
+        if r_fid < 2.: r_fid = 2.
+        if r_fid > 25.: r_fid = 25.
+        v_fid_mass[i] = f(r_fid)
 
         v_nfw = calc_NFW_vcirc(centers, M200c[i], c200c[i], sim_info)
         f = interpolate.interp1d(centers, v_nfw)
@@ -277,6 +325,7 @@ def make_rotation_curve_data(sim_info, log10_min_mass, log10_max_mass):
     MH = f.create_dataset('Vcirc_nfw_2kpc', data=v_circ_nfw_2)
     MH = f.create_dataset('Vcirc_nfw_5kpc', data=v_circ_nfw_5)
     MH = f.create_dataset('V_fiducial', data=v_fid)
+    MH = f.create_dataset('V_fiducial_with_mass_scale', data=v_fid_mass)
     MH = f.create_dataset('Vmax', data=Vmax)
     data_file.close()
     return
@@ -314,8 +363,8 @@ def plot_rotation_curve(sim_info, log10_min_mass, log10_max_mass, structure_type
         halo_indx = sim_info.halo_data.halo_index[sample[i]]
         part_data = particle_data.load_particle_data(sim_info, halo_indx, sample[i])
 
-        circular_velocity = calculate_Vcirc(part_data.masses.value,
-                                            part_data.coordinates.value,
+        circular_velocity = calculate_Vcirc(part_data.masses.value[part_data.bound_particles_only],
+                                            part_data.coordinates.value[part_data.bound_particles_only,:],
                                             radial_bins)
 
         v_circ[:, i] = circular_velocity
@@ -348,8 +397,8 @@ def plot_rotation_curve(sim_info, log10_min_mass, log10_max_mass, structure_type
     NFW_circ = calc_NFW_vcirc(centers, M200c, c200c, sim_info)
     plt.plot(centers, NFW_circ,'--',lw=2,color='black')
 
-    plt.xlim([0, 20])
-    #plt.axis([0, 20, 0, 100])
+    #plt.xlim([0, 20])
+    plt.axis([0, 20, 0, np.max(NFW_circ)*2])
     plt.xlabel("Radius [kpc]")
     plt.ylabel("Circular velocity [km/s]")
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
@@ -374,6 +423,7 @@ def plot_rotation_curve_data(sim_info, output_name_list):
             v_circ_nfw_2 = file["Data/Vcirc_nfw_2kpc"][:]
             v_circ_nfw_5 = file["Data/Vcirc_nfw_5kpc"][:]
             v_fid = file["Data/V_fiducial"][:]
+            v_fid_mass = file["Data/V_fiducial_with_mass_scale"][:]
             Vmax = file["Data/Vmax"][:]
 
     # Plot parameters
@@ -397,28 +447,27 @@ def plot_rotation_curve_data(sim_info, output_name_list):
     ax = plt.subplot(1, 1, 1)
     plt.grid("True")
 
-    ratio = (v_circ_1 - v_circ_nfw_1) / v_circ_nfw_1
     cen = Type == 10
     sat = Type > 10
-    plt.plot(M200c[cen], ratio[cen], 'o',color='tab:orange',label='Centrals')
-    plt.plot(M200c[sat], ratio[sat], 'o',color='tab:blue',label='Satellites')
+    plt.plot(M200c[cen], v_circ_2[cen], 'o',color='tab:orange',label='Centrals')
+    plt.plot(M200c[sat], v_circ_2[sat], 'o',color='tab:blue',label='Satellites')
 
-    x_range = np.arange(9, 11, 0.05)
-    y_cen = stat.binned_statistic(x=M200c[cen], values=ratio[cen], statistic="median", bins=x_range, )[0]
-    y_sat = stat.binned_statistic(x=M200c[sat], values=ratio[sat], statistic="median", bins=x_range, )[0]
-    x_center = bin_centers(x_range)
-    plt.plot(x_center, np.zeros(len(x_center)), '--', lw=1, color='black')
-    plt.plot(x_center, y_cen, '-',lw=2, color='white')
-    plt.plot(x_center, y_sat, '-',lw=2, color='white')
-    plt.plot(x_center, y_cen, '-', color='tab:orange')
-    plt.plot(x_center, y_sat, '-', color='tab:blue')
+    # x_range = np.arange(9, 11, 0.05)
+    # y_cen = stat.binned_statistic(x=M200c[cen], values=v_circ_2[cen], statistic="median", bins=x_range, )[0]
+    # y_sat = stat.binned_statistic(x=M200c[sat], values=v_circ_2[sat], statistic="median", bins=x_range, )[0]
+    # x_center = bin_centers(x_range)
+    # plt.plot(x_center, np.zeros(len(x_center)), '--', lw=1, color='black')
+    # plt.plot(x_center, y_cen, '-',lw=2, color='white')
+    # plt.plot(x_center, y_sat, '-',lw=2, color='white')
+    # plt.plot(x_center, y_cen, '-', color='tab:orange')
+    # plt.plot(x_center, y_sat, '-', color='tab:blue')
 
-    plt.axis([9, 11, -1, 3])
+    #plt.axis([9, 11, -1, 3])
     plt.xlabel("$\log_{10}$ M [M$_{\odot}$]")
-    plt.ylabel("(V$_{\mathrm{c}}$(1kpc)-V$_{\mathrm{c,NFW}}$)/V$_{\mathrm{c,NFW}}$")
+    plt.ylabel("V$_{\mathrm{circ}}$($r=2.5$kpc) [km/s]")
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.legend(labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
-    plt.savefig(f"{sim_info.output_path}/M200_Vcirc_ratio_1_kpc_" + sim_info.simulation_name + ".png", dpi=200)
+    plt.savefig(f"{sim_info.output_path}/M200_Vcirc_2.5_kpc_" + sim_info.simulation_name + ".png", dpi=200)
     plt.close()
 
     figure()
@@ -563,18 +612,41 @@ def plot_rotation_curve_data(sim_info, output_name_list):
     plt.savefig(f"{sim_info.output_path}/M200c_Vcirc_2_kpc_" + sim_info.simulation_name + ".png", dpi=200)
     plt.close()
 
+    figure()
+    ax = plt.subplot(1, 1, 1)
+    plt.grid("True")
+
+    cen = Type == 10
+    sat = Type > 10
+    plt.plot(M200c[cen], v_fid_mass[cen], 'o', color='tab:orange', label='Centrals')
+    plt.plot(M200c[sat], v_fid_mass[sat], 'o', color='tab:blue', label='Satellites')
+
+    NFW_M200c, NFW_Vcirc_fid_mass = NFW_curve_fiducial_mass(sim_info)
+
+    plt.plot(NFW_M200c, NFW_Vcirc_fid_mass, '-', lw=1, color='black', label='NFW')
+
+    plt.axis([9, 11, 0, 80])
+    plt.xlabel("$\log_{10}M_{200c}$ [M$_{\odot}$]")
+    plt.ylabel("V$_{\mathrm{fid-mass}}$ [km/s]")
+    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
+    plt.legend(loc='upper left', labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
+    plt.savefig(f"{sim_info.output_path}/M200c_Vfid_mass_" + sim_info.simulation_name + ".png", dpi=200)
+    plt.close()
+
 def function(x,a,b,c,d):
     f = a + b*x + c*x**2 + d*x**3
     return f
 
 def plot_rotation_relative_to_CDM(sim_info, output_name_list):
 
-    name = 'DML025N752SigmaConstant00'
-    filename = f"{sim_info.output_path}/Rotation_data_" + name + ".hdf5"
+    name = 'DML006N188SigmaConstant00'
+    filename = "/Users/camila/SimulationData/mahti/L006N188/DMONLY/plots/comparison/Rotation_data_" + name + ".hdf5"
+    #name = 'DML025N752SigmaConstant00'
+    #filename = "/Users/camila/SimulationData/mahti/L025N752/DMONLY/plots/Rotation_data_" + name + ".hdf5"
     with h5py.File(filename, "r") as file:
         CDM_M200c = file["Data/M200c"][:]
         CDM_Type = file["Data/StructureType"][:]
-        CDM_v_fid = file["Data/V_fiducial"][:]
+        CDM_v_fid = file["Data/V_fiducial_with_mass_scale"][:]
 
     cen = np.where(CDM_Type == 10)[0]
     sat = np.where(CDM_Type > 10)[0]
@@ -683,7 +755,8 @@ def plot_rotation_relative_to_CDM(sim_info, output_name_list):
         with h5py.File(filename, "r") as file:
             M200c = file["Data/M200c"][:]
             Type = file["Data/StructureType"][:]
-            v_fid = file["Data/V_fiducial"][:]
+            v_fid = file["Data/V_fiducial_with_mass_scale"][:]
+
 
         cen = np.where(Type == 10)[0]
         sat = np.where(Type > 10)[0]
@@ -695,20 +768,20 @@ def plot_rotation_relative_to_CDM(sim_info, output_name_list):
         plt.plot(M200c[cen], v_fid[cen], 'o', color='tab:orange', label='Centrals')
         plt.plot(M200c[sat], v_fid[sat], 'o', color='tab:blue', label='Satellites')
 
-        plt.fill_between(xdata, function(xdata - 9.0, *popt_16), function(xdata - 9.0, *popt_84), alpha=0.2,
-                         color='tab:orange')
-        plt.plot(xdata, function(xdata - 9.0, *popt_50), '-', lw=2, color='white')
-        plt.plot(xdata, function(xdata - 9.0, *popt_50), '-', lw=1, color='tab:orange')
-        plt.plot(xdata, ydata_50_cen, '-', lw=1, color='tab:red')
+        # plt.fill_between(xdata, function(xdata - 9.0, *popt_16), function(xdata - 9.0, *popt_84), alpha=0.2,
+        #                  color='tab:orange')
+        # plt.plot(xdata, function(xdata - 9.0, *popt_50), '-', lw=2, color='white')
+        # plt.plot(xdata, function(xdata - 9.0, *popt_50), '-', lw=1, color='tab:orange')
+        # plt.plot(xdata, ydata_50_cen, '-', lw=1, color='tab:red')
+        #
+        # plt.fill_between(xdata, function(xdata - 9.0, *popt_16_sat), function(xdata - 9.0, *popt_84_sat), alpha=0.2,
+        #                  color='tab:blue')
+        # plt.plot(xdata, function(xdata - 9.0, *popt_50_sat), '-', lw=2, color='white')
+        # plt.plot(xdata, function(xdata - 9.0, *popt_50_sat), '-', lw=1, color='tab:blue')
+        # plt.plot(xdata, ydata_50_sat, '-', lw=1, color='tab:purple')
 
-        plt.fill_between(xdata, function(xdata - 9.0, *popt_16_sat), function(xdata - 9.0, *popt_84_sat), alpha=0.2,
-                         color='tab:blue')
-        plt.plot(xdata, function(xdata - 9.0, *popt_50_sat), '-', lw=2, color='white')
-        plt.plot(xdata, function(xdata - 9.0, *popt_50_sat), '-', lw=1, color='tab:blue')
-        plt.plot(xdata, ydata_50_sat, '-', lw=1, color='tab:purple')
-
-        plt.axis([9, 12, 1, 500])
-        plt.yscale('log')
+        plt.axis([9, 10, 10, 50])
+        #plt.yscale('log')
         plt.xlabel("$\log_{10}M_{200c}$ [M$_{\odot}$]")
         plt.ylabel("$V_{\mathrm{fid}}$ [km/s]")
         ax.tick_params(direction='in', axis='both', which='both', pad=4.5)

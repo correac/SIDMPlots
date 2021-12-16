@@ -1,6 +1,8 @@
 import swiftsimio as sw
 import numpy
 import unyt
+import h5py
+from typing import Tuple
 
 
 class load_particle_data:
@@ -34,9 +36,12 @@ class load_particle_data:
         # Now load the snapshot with this mask
         data = sw.load(f"{sim_info.directory}/{sim_info.snapshot_name}", mask=mask)
 
-        self.coordinates = data.dark_matter.coordinates.to("Mpc") - origin
-        self.coordinates *= sim_info.a
-        self.coordinates *= 1e3 #to kpc
+        self.ids = data.dark_matter.particle_ids.value
+        self.bound_particles_only = self.select_bound_particles(sim_info, halo_index)
+
+        self.coordinates = data.dark_matter.coordinates.to("Mpc") * sim_info.a
+        self.coordinates -= origin  # centering
+        self.coordinates *= 1e3     # to kpc
 
         vx = sim_info.halo_data.vxminpot[index]
         vy = sim_info.halo_data.vyminpot[index]
@@ -60,3 +65,36 @@ class load_particle_data:
         else:
             self.cross_section = numpy.zeros(sim_info.num_dm_particles)
             self.num_sidm_events = numpy.zeros(sim_info.num_dm_particles)
+
+
+    def select_bound_particles(self, sim_info, halo_index: int) -> Tuple[numpy.ndarray]:
+        """
+        Select particles that are gravitationally bound to halo
+        Parameters
+        ----------
+        halo_id: int
+        Halo id from the catalogue
+        Returns
+        -------
+        Output: Tuple[np.ndarray, np.ndarray]
+        A tuple containing ids of the stellar particles and gas particles
+        """
+        particles_file = h5py.File(f"{sim_info.directory}/{sim_info.catalogue_particles}", "r")
+        group_file = h5py.File(f"{sim_info.directory}/{sim_info.catalogue_groups}", "r")
+
+        halo_start_position = group_file["Offset"][halo_index]
+        halo_end_position = group_file["Offset"][halo_index + 1]
+
+        particle_ids_in_halo = particles_file["Particle_IDs"][halo_start_position:halo_end_position]
+
+        _, _, mask = numpy.intersect1d(
+            particle_ids_in_halo,
+            self.ids,
+            assume_unique=True,
+            return_indices=True,
+        )
+
+        # Ensure that there are no negative indices
+        mask = mask[mask > 0]
+
+        return mask

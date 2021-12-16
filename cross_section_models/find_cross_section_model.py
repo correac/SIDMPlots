@@ -77,7 +77,7 @@ params = {
     "font.size": 12,
     "font.family":"Times",
     "text.usetex": True,
-    "figure.figsize": (5, 3.5),
+    "figure.figsize": (4.5, 3.5),
     "figure.subplot.left": 0.15,
     "figure.subplot.right": 0.95,
     "figure.subplot.bottom": 0.13,
@@ -85,7 +85,7 @@ params = {
     "figure.subplot.wspace": 0.25,
     "figure.subplot.hspace": 0.25,
     "lines.markersize": 6,
-    "lines.linewidth": 1.0,
+    "lines.linewidth": 2.0,
     "figure.max_open_warning": 0,
 }
 rcParams.update(params)
@@ -94,23 +94,27 @@ ax1 = fig.add_subplot(111)
 ax2 = ax1.twiny()
 plt.grid(True)
 
+print("Momentum-transfer cross section models:")
+
 xrange = np.arange(0,3,0.05)
 xrange = 10**xrange
+
+ax1.plot(xrange,np.ones(len(xrange)),':',lw=1,color='black')#,label='1 cm$^{2}$/g')
+ax1.plot(xrange,10*np.ones(len(xrange)),'--',lw=1,color='black')#,label='10 cm$^{2}$/g')
+
 
 xdata = np.array([10,11,12,15,20,80,90])
 ydata = np.array([100,98,94,86,70,3,1])
 popt, pcov = curve_fit(sigma, xdata, ydata)
 print("SigmaVel100 model")
-print("Momentum-transfer")
 print('mx',popt[0])
 print('mphi',popt[1])
 print('alpha',popt[2])
 print(sigma(10,*popt),sigma(90,*popt))
 print('---')
 
-#ax1.plot(xdata,ydata,'o',color='tab:grey')
 label = r'$m_{x}{=}$%.3f'%popt[0]+'GeV, $m_{\phi}{=}$%.3f'%popt[1]+r'MeV, $\alpha{=}$%.3e'%popt[2]
-ax1.plot(xrange,sigma(xrange,*popt),'-',color='tab:purple',label=label)
+ax1.plot(xrange,sigma(xrange,*popt),'-',color='tab:blue',label=label)
 
 # popt, pcov = curve_fit(sigma2, xdata, ydata)
 # print("Velocity-dep")
@@ -121,19 +125,19 @@ ax1.plot(xrange,sigma(xrange,*popt),'-',color='tab:purple',label=label)
 # ax1.plot(xrange,sigma2(xrange,*popt),'--',color='tab:purple')#,label=r'$m_{x}{=}3.391$GeV, $m_{\phi}{=}0.377$MeV, $\alpha{=}1.53e-5$')
 
 
-xdata = np.array([10,11,12,15,20,80,90])
-ydata = np.array([60,60,58,55,45,3,1])
-popt, pcov = curve_fit(sigma, xdata, ydata)
-print("SigmaVel60 model")
-print('mx',popt[0])
-print('mphi',popt[1])
-print('alpha',popt[2])
-print(sigma(10,*popt),sigma(90,*popt))
-print('---')
-
-#ax1.plot(xdata,ydata,'o',color='tab:grey')
-label = r'$m_{x}{=}$%.3f'%popt[0]+'GeV, $m_{\phi}{=}$%.3f'%popt[1]+r'MeV, $\alpha{=}$%.3e'%popt[2]
-ax1.plot(xrange,sigma(xrange,*popt),'-',color='tab:red',label=label)
+# xdata = np.array([10,11,12,15,20,80,90])
+# ydata = np.array([60,60,58,55,45,3,1])
+# popt, pcov = curve_fit(sigma, xdata, ydata)
+# print("SigmaVel60 model")
+# print('mx',popt[0])
+# print('mphi',popt[1])
+# print('alpha',popt[2])
+# print(sigma(10,*popt),sigma(90,*popt))
+# print('---')
+#
+# #ax1.plot(xdata,ydata,'o',color='tab:grey')
+# label = r'$m_{x}{=}$%.3f'%popt[0]+'GeV, $m_{\phi}{=}$%.3f'%popt[1]+r'MeV, $\alpha{=}$%.3e'%popt[2]
+# ax1.plot(xrange,sigma(xrange,*popt),'-',color='tab:red',label=label)
 
 # popt, pcov = curve_fit(sigma2, xdata, ydata)
 # print('mx',popt[0])
@@ -153,7 +157,6 @@ print('alpha',popt[2])
 print(sigma(10,*popt),sigma(90,*popt))
 print('---')
 
-#ax1.plot(xdata,ydata,'o',color='tab:grey')
 label = r'$m_{x}{=}$%.3f'%popt[0]+'GeV, $m_{\phi}{=}$%.3f'%popt[1]+r'MeV, $\alpha{=}$%.3e'%popt[2]
 ax1.plot(xrange,sigma(xrange,*popt),'-',color='tab:orange',label=label)
 
@@ -164,19 +167,19 @@ ax1.plot(xrange,sigma(xrange,*popt),'-',color='tab:orange',label=label)
 # print('---')
 # ax1.plot(xrange,sigma2(xrange,*popt),'--',color='tab:orange')#,label=r'$m_{x}{=}3.089$GeV, $m_{\phi}{=}0.396$MeV, $\alpha{=}1.17e{-}5$')
 
-xdata = np.array([10,11,12,15,20,80,90])
-ydata = np.array([35,35,33,30,25,4,2])
-popt, pcov = curve_fit(sigma, xdata, ydata)
-print("SigmaVel35 model")
-print('mx',popt[0])
-print('mphi',popt[1])
-print('alpha',popt[2])
-print(sigma(10,*popt),sigma(90,*popt))
-print('---')
-
-#ax1.plot(xdata,ydata,'o',color='tab:grey')
-label = r'$m_{x}{=}$%.3f'%popt[0]+'GeV, $m_{\phi}{=}$%.3f'%popt[1]+r'MeV, $\alpha{=}$%.3e'%popt[2]
-ax1.plot(xrange,sigma(xrange,*popt),'-',color='tab:blue',label=label)
+# xdata = np.array([10,11,12,15,20,80,90])
+# ydata = np.array([35,35,33,30,25,4,2])
+# popt, pcov = curve_fit(sigma, xdata, ydata)
+# print("SigmaVel35 model")
+# print('mx',popt[0])
+# print('mphi',popt[1])
+# print('alpha',popt[2])
+# print(sigma(10,*popt),sigma(90,*popt))
+# print('---')
+#
+# #ax1.plot(xdata,ydata,'o',color='tab:grey')
+# label = r'$m_{x}{=}$%.3f'%popt[0]+'GeV, $m_{\phi}{=}$%.3f'%popt[1]+r'MeV, $\alpha{=}$%.3e'%popt[2]
+# ax1.plot(xrange,sigma(xrange,*popt),'-',color='tab:blue',label=label)
 
 # popt, pcov = curve_fit(sigma2, xdata, ydata)
 # print('mx',popt[0])
@@ -211,12 +214,12 @@ ax1.plot(xrange,sigma(xrange,*popt),'-',color='tab:green',label=label)
 # ax1.plot(xrange,sigma(xrange,3,0.3,6.74e-6),'-',lw=1,color='tab:red',label=r'$m_{x}{=}3$GeV, $m_{\phi}{=}0.3$MeV, $\alpha{=}6.74e{-}6$')
 # ax1.plot(xrange,sigma(xrange,1,0.3,6.74e-6),'-',lw=1,color='tab:blue',label=r'$m_{x}{=}1$GeV, $m_{\phi}{=}0.3$MeV, $\alpha{=}6.74e{-}6$')
 
-ax1.plot(xrange,np.ones(len(xrange)),':',lw=1,color='tab:grey')
-ax1.plot(xrange,10*np.ones(len(xrange)),':',lw=1,color='tab:grey')
+plt.text(12,1.1,'1 cm$^{2}$/g',fontsize=10.5)
+plt.text(12,10.7,'10 cm$^{2}$/g',fontsize=10.5)
 
-ax1.legend(loc="lower left",labelspacing=0.2,handlelength=1,handletextpad=0.4,frameon=False,fontsize=10.5)
+ax1.legend(loc=[0.0,0.015],labelspacing=0.2,handlelength=1,handletextpad=0.4,frameon=False,fontsize=10.5)
 ax1.set_xlabel('$v$ [km/s]')
-ax1.set_ylabel('$\sigma_{T}/m_{x}$ [cm$^{2}$g$^{-1}$]')
+ax1.set_ylabel('$\sigma_{T}/m_{\chi}$ [cm$^{2}$g$^{-1}$]')
 ax1.set_xlim([10,200])
 ax1.set_ylim([1e-1,140])
 ax1.set_xscale('log')
@@ -224,12 +227,19 @@ ax1.set_yscale('log')
 
 new_tick_locations = np.array([10,50,100,150,200])
 print(tick_function(new_tick_locations))
+
+ticks_labels = ["%.f" % z for z in new_tick_locations]
+print(new_tick_locations)
+print(ticks_labels)
+ax1.set_xticks(new_tick_locations)
+ax1.set_xticklabels(ticks_labels)
+
 ax2.set_xlim(ax1.get_xlim())
 ax2.set_xticks(new_tick_locations)
 ax2.set_xticklabels(tick_function(new_tick_locations))
 ax2.set_xlabel(r"M$_{200}$ [log$_{10}$ M$_{\odot}$]")
 ax1.tick_params(direction='in', axis='both', which='both', pad=4.5)
 ax2.tick_params(direction='in', axis='both', which='both', pad=4.5)
-plt.savefig('find_cross_section_2_models.png', dpi=200)
+plt.savefig('SIDM_models.png', dpi=200)
 
 

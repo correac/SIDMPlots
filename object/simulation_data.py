@@ -38,7 +38,7 @@ class SimInfo:
         self.output_path = output
 
         # Find the group and particle catalogue files
-        # self.__find_groups_and_particles_catalogues()
+        self.__find_groups_and_particles_catalogues()
 
         # Load snapshot via swiftsimio
         self.snapshot = load(f"{self.directory}/{self.snapshot_name}")

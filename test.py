@@ -90,7 +90,8 @@ centers = bin_centers(radial_bins) # kpc
 for i in range(len(M200c)):
     v_circ = calc_NFW_vcirc(centers, M200c[i])
     Vmax = np.max(v_circ)
-    r_fid = Vmax / 10
+    #r_fid = Vmax / 10
+    r_fid = 2.3 * (10**M200c[i]/1e9)**0.23
     print(r_fid,M200c[i],Vmax)
     f = interpolate.interp1d(centers, v_circ)
     v_fid = f(r_fid)
