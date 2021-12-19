@@ -111,7 +111,7 @@ def main(config: ArgumentParser):
         #     profile_data=profile_data_satellites_11
         # )
         #
-        cosmic_scatter_rate = compute_scatter_rate(sim_info=sim_info, cosmic_scatter_rate)
+        cosmic_scatter_rate = compute_scatter_rate(sim_info, cosmic_scatter_rate)
         #
         # plot_rotation_curve(
         #     sim_info=sim_info,
@@ -157,7 +157,7 @@ def main(config: ArgumentParser):
 
     # plot_t0(sim_info)
 
-    plot_cosmic_scatter_rate(cosmic_scatter_rate=cosmic_scatter_rate, sim_info=sim_info, output_name_list=output_name_list)
+    plot_cosmic_scatter_rate(cosmic_scatter_rate, sim_info, output_name_list)
     #
     # plot_profiles(profile_data=profile_data_centrals_9, sim_info=sim_info, output_name_list=output_name_list)
     # plot_profiles(profile_data=profile_data_satellites_9, sim_info=sim_info, output_name_list=output_name_list)

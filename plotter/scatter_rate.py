@@ -8,6 +8,7 @@ from scipy.special import spence
 from colossus.cosmology import cosmology
 cosmology.setCosmology('planck13');
 from colossus.lss import mass_function
+import swiftsimio as sw
 
 class make_cosmic_scatter_rate:
 
@@ -61,9 +62,9 @@ def sigma_1D(x, log10_M, a, siminfo):
     return np.sqrt(ff)
 
 
-def gamma(log10_M, siminfo):
+def gamma(log10_M, z, siminfo):
 
-    z = siminfo.z
+    #z = siminfo.z
     Om = siminfo.Omega_m
     Ol = siminfo.Omega_l
     sigma = siminfo.cross_section
@@ -116,7 +117,7 @@ def analytic_scatter(siminfo, z, Mmin, Mmax):
     f = mfunc
 
     G = np.zeros(len(M))
-    for i in range(0, len(M)): G[i] = gamma(M[i], z, siminfo)  # [Gyr^-1 particle^-1]
+    for i in range(0, len(M)): G[i] = gamma(np.log10(M[i]), z, siminfo)  # [Gyr^-1 particle^-1]
 
     n = f * G
     n = np.sum(n * 0.25 / np.log(10.))
@@ -125,7 +126,7 @@ def analytic_scatter(siminfo, z, Mmin, Mmax):
 
 def compute_scatter_rate(siminfo, scatter_rate_data):
 
-    snapshot = load(f"{siminfo.directory}/{siminfo.snapshot_base_name}"+"_%04i.hdf5"%0)
+    snapshot = sw.load(f"{siminfo.directory}/{siminfo.snapshot_base_name}"+"_%04i.hdf5"%0)
     old_time = snapshot.metadata.cosmology.hubble_time.value # Gyr
 
     nparts = siminfo.num_dm_particles
@@ -134,9 +135,9 @@ def compute_scatter_rate(siminfo, scatter_rate_data):
     redshift[0] = snapshot.metadata.redshift
     previous_events = 0
 
-    for i in range(1,siminfo.n_snapshots+1):
+    for i in range(1,siminfo.n_snapshots):
 
-        snapshot = load(f"{siminfo.directory}/{siminfo.snapshot_base_name}" + "_%04i.hdf5" %i)
+        snapshot = sw.load(f"{siminfo.directory}/{siminfo.snapshot_base_name}" + "_%04i.hdf5" %i)
         if (hasattr(snapshot.dark_matter,'sidm_events')):
             n_sidm_events = np.sum(snapshot.dark_matter.sidm_events.value)
         else:
@@ -166,8 +167,8 @@ def plot_cosmic_scatter_rate(cosmic_scatter_rate, siminfo, output_name_list):
     # Plot parameters
     params = {
         "font.size": 12,
-        "font.family": "Times",
-        "text.usetex": True,
+        #"font.family": "Times",
+        #"text.usetex": True,
         "figure.figsize": (5, 4),
         "figure.subplot.left": 0.15,
         "figure.subplot.right": 0.95,
@@ -219,5 +220,5 @@ def plot_cosmic_scatter_rate(cosmic_scatter_rate, siminfo, output_name_list):
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
     plt.legend(loc=[0.45, 0.65], labelspacing=0.2, handlelength=1.5, handletextpad=0.4, frameon=False)
     ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.savefig(f"{siminfo.output_path}/Cosmic_scatter_rate.png", dpi=200)
+    plt.savefig(f"{siminfo.output_path}/Cosmic_scatter_rate"+siminfo.simulation_name+".png", dpi=200)
     plt.clf()

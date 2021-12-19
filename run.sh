@@ -3,6 +3,20 @@
 # Runs SIDMPlots using the following variables:
 #python3 -i track_evolution.py \
 
+python3 sidmplots.py \
+-d /scratch/tangosidm/Tango_sims/L025N752/DMONLY/SigmaConstant10 \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n DML025N752SigmaConstant10 \
+-o ./plots/
+
+python3 sidmplots.py \
+-d /scratch/tangosidm/Tango_sims/L025N752/DMONLY/SigmaVelDep20Isotropic \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n DML025N752SigmaVelDep20 \
+-o ./plots/
+
 #python3 sidmplots.py \
 #-d ~/SimulationData/mahti/L006N188/DMONLY/SigmaConstant00 \
 #-s snapshot_0036.hdf5 \
