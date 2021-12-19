@@ -111,45 +111,45 @@ def main(config: ArgumentParser):
         #     profile_data=profile_data_satellites_11
         # )
         #
-        # #cosmic_scatter_rate = compute_scatter_rate(sim_info=sim_info, cosmic_scatter_rate)
+        cosmic_scatter_rate = compute_scatter_rate(sim_info=sim_info, cosmic_scatter_rate)
         #
-        plot_rotation_curve(
-            sim_info=sim_info,
-            log10_min_mass=8.95,
-            log10_max_mass=9.05,
-            structure_type=10
-        )
-        plot_rotation_curve(
-            sim_info=sim_info,
-            log10_min_mass=8.95,
-            log10_max_mass=9.05,
-            structure_type=15
-        )
-
-        plot_rotation_curve(
-            sim_info=sim_info,
-            log10_min_mass=9.95,
-            log10_max_mass=10.05,
-            structure_type=10
-        )
-
-        plot_rotation_curve(
-            sim_info=sim_info,
-            log10_min_mass=9.95,
-            log10_max_mass=10.05,
-            structure_type=15
-        )
+        # plot_rotation_curve(
+        #     sim_info=sim_info,
+        #     log10_min_mass=8.95,
+        #     log10_max_mass=9.05,
+        #     structure_type=10
+        # )
+        # plot_rotation_curve(
+        #     sim_info=sim_info,
+        #     log10_min_mass=8.95,
+        #     log10_max_mass=9.05,
+        #     structure_type=15
+        # )
+        #
+        # plot_rotation_curve(
+        #     sim_info=sim_info,
+        #     log10_min_mass=9.95,
+        #     log10_max_mass=10.05,
+        #     structure_type=10
+        # )
+        #
+        # plot_rotation_curve(
+        #     sim_info=sim_info,
+        #     log10_min_mass=9.95,
+        #     log10_max_mass=10.05,
+        #     structure_type=15
+        # )
         #
         # HMF_data = make_HMF(sim_info=sim_info, HMF_data=HMF_data)
         #
         # halo_data = store_halo_data(sim_info=sim_info, halo_data=halo_data)
 
-        make_rotation_curve_data(sim_info=sim_info,
-                                 log10_min_mass=9.0,
-                                 log10_max_mass=12.0)
-
-    plot_rotation_curve_data(sim_info, output_name_list=output_name_list)
-    plot_rotation_relative_to_CDM(sim_info, output_name_list=output_name_list)
+    #     make_rotation_curve_data(sim_info=sim_info,
+    #                              log10_min_mass=9.0,
+    #                              log10_max_mass=12.0)
+    #
+    # plot_rotation_curve_data(sim_info, output_name_list=output_name_list)
+    # plot_rotation_relative_to_CDM(sim_info, output_name_list=output_name_list)
 
     # plot_HMF(HMF_data, sim_info, output_name_list)
     #
@@ -157,7 +157,7 @@ def main(config: ArgumentParser):
 
     # plot_t0(sim_info)
 
-    #plot_cosmic_scatter_rate(cosmic_scatter_rate=cosmic_scatter_rate, sim_info=sim_info, output_name_list=output_name_list)
+    plot_cosmic_scatter_rate(cosmic_scatter_rate=cosmic_scatter_rate, sim_info=sim_info, output_name_list=output_name_list)
     #
     # plot_profiles(profile_data=profile_data_centrals_9, sim_info=sim_info, output_name_list=output_name_list)
     # plot_profiles(profile_data=profile_data_satellites_9, sim_info=sim_info, output_name_list=output_name_list)

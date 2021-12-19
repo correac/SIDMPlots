@@ -3,26 +3,26 @@
 # Runs SIDMPlots using the following variables:
 #python3 -i track_evolution.py \
 
-python3 sidmplots.py \
--d ~/SimulationData/mahti/L006N188/DMONLY/SigmaConstant00 \
--s snapshot_0036.hdf5 \
--c subhalo_0036.properties \
--n DML006N188SigmaConstant00 \
--o ~/SimulationData/mahti/L006N188/DMONLY/plots/comparison/
-
-python3 sidmplots.py \
--d ~/SimulationData/mahti/L006N188/DMONLY/SigmaVelDep100Anisotropic \
--s snapshot_0036.hdf5 \
--c subhalo_0036.properties \
--n DML006N188SigmaVelDep100Anisotropic \
--o ~/SimulationData/mahti/L006N188/DMONLY/plots/comparison/
-
-python3 sidmplots.py \
--d ~/SimulationData/mahti/L006N188/DMONLY/SigmaVelDep100Isotropic \
--s snapshot_0036.hdf5 \
--c subhalo_0036.properties \
--n DML006N188SigmaVelDep100Isotropic \
--o ~/SimulationData/mahti/L006N188/DMONLY/plots/comparison/
+#python3 sidmplots.py \
+#-d ~/SimulationData/mahti/L006N188/DMONLY/SigmaConstant00 \
+#-s snapshot_0036.hdf5 \
+#-c subhalo_0036.properties \
+#-n DML006N188SigmaConstant00 \
+#-o ~/SimulationData/mahti/L006N188/DMONLY/plots/comparison/
+#
+#python3 sidmplots.py \
+#-d ~/SimulationData/mahti/L006N188/DMONLY/SigmaVelDep100Anisotropic \
+#-s snapshot_0036.hdf5 \
+#-c subhalo_0036.properties \
+#-n DML006N188SigmaVelDep100Anisotropic \
+#-o ~/SimulationData/mahti/L006N188/DMONLY/plots/comparison/
+#
+#python3 sidmplots.py \
+#-d ~/SimulationData/mahti/L006N188/DMONLY/SigmaVelDep100Isotropic \
+#-s snapshot_0036.hdf5 \
+#-c subhalo_0036.properties \
+#-n DML006N188SigmaVelDep100Isotropic \
+#-o ~/SimulationData/mahti/L006N188/DMONLY/plots/comparison/
 #
 #
 #python3 sidmplots.py \
