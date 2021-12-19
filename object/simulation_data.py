@@ -79,7 +79,7 @@ class SimInfo:
         # Cosmic scale factor
         self.a = self.snapshot.metadata.scale_factor
 
-        self.hubble_time_Gyr = self.snapshot.metadata.cosmology.hubble_time.value
+        self.hubble_time_Gyr = self.snapshot.metadata.time.to("Gyr").value
 
         self.Omega_m = self.snapshot.metadata.cosmology.Om0
 

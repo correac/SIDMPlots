@@ -127,9 +127,10 @@ def analytic_scatter(siminfo, z, Mmin, Mmax):
 def compute_scatter_rate(siminfo, scatter_rate_data):
 
     snapshot = sw.load(f"{siminfo.directory}/{siminfo.snapshot_base_name}"+"_%04i.hdf5"%0)
-    old_time = snapshot.metadata.cosmology.hubble_time.value # Gyr
+    old_time = snapshot.metadata.time.to("Gyr").value
 
     nparts = siminfo.num_dm_particles
+
     scatter_rate = np.zeros(siminfo.n_snapshots+1)
     redshift = np.zeros(siminfo.n_snapshots+1)
     redshift[0] = snapshot.metadata.redshift
@@ -144,7 +145,7 @@ def compute_scatter_rate(siminfo, scatter_rate_data):
             n_sidm_events = 0
 
         redshift[i] = snapshot.metadata.redshift
-        time = snapshot.metadata.cosmology.hubble_time.value # Gyr
+        time = snapshot.metadata.time.to("Gyr").value
         delta_time = time - old_time # Gyr
         old_time = time # Gyr
 
@@ -152,12 +153,12 @@ def compute_scatter_rate(siminfo, scatter_rate_data):
         previous_events = n_sidm_events
         scatter_rate[i] = n_collisions / ( delta_time * nparts )
 
-
     if scatter_rate_data == None:
         scatter_rate_data = make_cosmic_scatter_rate(redshift, scatter_rate)
     else:
         scatter_rate_data.add_data(scatter_rate)
 
+    print(scatter_rate)
     return scatter_rate_data
 
 
