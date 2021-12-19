@@ -158,7 +158,9 @@ def compute_scatter_rate(siminfo, scatter_rate_data):
     else:
         scatter_rate_data.add_data(scatter_rate)
 
-    print(scatter_rate)
+    np.savetxt(f"{siminfo.output_path}/Cosmic_scatter_rate_" + siminfo.name + ".txt",
+               np.transpose([redshift, scatter_rate]))
+
     return scatter_rate_data
 
 
