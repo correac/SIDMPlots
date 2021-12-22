@@ -3,6 +3,7 @@ import numpy
 import unyt
 import h5py
 from typing import Tuple
+import velociraptor
 
 
 class load_particle_data:
@@ -10,7 +11,7 @@ class load_particle_data:
     Class containing particles properties
     """
     def __init__(
-        self, sim_info, halo_index, index,
+        self, sim_info, halo_index, index = None,
     ):
         """
         Parameters
@@ -22,9 +23,18 @@ class load_particle_data:
         # The full metadata object is available from within the mask
         size = unyt.unyt_array([0.5, 0.5, 0.5], 'Mpc')
 
-        x = sim_info.halo_data.xminpot[index]
-        y = sim_info.halo_data.yminpot[index]
-        z = sim_info.halo_data.zminpot[index]
+        if index == None:
+
+            catalogue_file = f"{sim_info.directory}/{sim_info.catalogue_name}"
+            catalogue = velociraptor.load(catalogue_file)
+            x = catalogue.positions.xcminpot.to("Mpc").value[halo_index]
+            y = catalogue.positions.ycminpot.to("Mpc").value[halo_index]
+            z = catalogue.positions.zcminpot.to("Mpc").value[halo_index]
+
+        else :
+            x = sim_info.halo_data.xminpot[index]
+            y = sim_info.halo_data.yminpot[index]
+            z = sim_info.halo_data.zminpot[index]
         origin = unyt.unyt_array([x, y, z], 'Mpc')
 
         # region is a 3x2 list [[left, right], [bottom, top], [front, back]]
@@ -43,9 +53,18 @@ class load_particle_data:
         self.coordinates -= origin  # centering
         self.coordinates *= 1e3     # to kpc
 
-        vx = sim_info.halo_data.vxminpot[index]
-        vy = sim_info.halo_data.vyminpot[index]
-        vz = sim_info.halo_data.vzminpot[index]
+        if index == None:
+            catalogue_file = f"{sim_info.directory}/{sim_info.catalogue_name}"
+            catalogue = velociraptor.load(catalogue_file)
+            vx = catalogue.velocities.vxcminpot.to("km/s").value[halo_index]
+            vy = catalogue.velocities.vycminpot.to("km/s").value[halo_index]
+            vz = catalogue.velocities.vzcminpot.to("km/s").value[halo_index]
+
+        else:
+            vx = sim_info.halo_data.vxminpot[index]
+            vy = sim_info.halo_data.vyminpot[index]
+            vz = sim_info.halo_data.vzminpot[index]
+
         origin = unyt.unyt_array([vx, vy, vz], "km/s")
 
         self.velocities = data.dark_matter.velocities.to("km/s") - origin

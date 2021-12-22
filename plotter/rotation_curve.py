@@ -283,6 +283,8 @@ def make_rotation_curve_data(sim_info, log10_min_mass, log10_max_mass):
         halo_indx = sim_info.halo_data.halo_index[sample[i]]
         part_data = particle_data.load_particle_data(sim_info, halo_indx, sample[i])
 
+        if len(part_data.bound_particles_only) < 10: continue
+
         circular_velocity = calculate_Vcirc(part_data.masses.value[part_data.bound_particles_only],
                                             part_data.coordinates.value[part_data.bound_particles_only, :],
                                             radial_bins)
@@ -639,10 +641,10 @@ def function(x,a,b,c,d):
 
 def plot_rotation_relative_to_CDM(sim_info, output_name_list):
 
-    name = 'DML006N188SigmaConstant00'
-    filename = "/Users/camila/SimulationData/mahti/L006N188/DMONLY/plots/comparison/Rotation_data_" + name + ".hdf5"
-    #name = 'DML025N752SigmaConstant00'
-    #filename = "/Users/camila/SimulationData/mahti/L025N752/DMONLY/plots/Rotation_data_" + name + ".hdf5"
+    #name = 'DML006N188SigmaConstant00'
+    #filename = "/Users/camila/SimulationData/mahti/L006N188/DMONLY/plots/comparison/Rotation_data_" + name + ".hdf5"
+    name = 'DML025N752SigmaConstant00'
+    filename = "/Users/camila/SimulationData/mahti/L025N752/DMONLY/plots/Rotation_data_" + name + ".hdf5"
     with h5py.File(filename, "r") as file:
         CDM_M200c = file["Data/M200c"][:]
         CDM_Type = file["Data/StructureType"][:]

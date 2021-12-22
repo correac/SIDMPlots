@@ -2,7 +2,7 @@ import scipy.stats as stat
 import numpy as np
 from tqdm import tqdm
 from object import particle_data
-
+from .circular_velocity import calculate_Vcirc
 
 class make_profile_data:
 
@@ -118,12 +118,11 @@ def compute_density_profiles(sim_info, log10_min_mass, log10_max_mass, structure
         halo_indx = sim_info.halo_data.halo_index[sample[i]]
         part_data = particle_data.load_particle_data(sim_info, halo_indx, sample[i])
 
-        density, velocity, sigma = calculate_profiles(part_data.masses.value,
-                                               part_data.coordinates.value,
-                                               part_data.velocities.value,
-                                               part_data.cross_section,
-                                               radial_bins)
-
+        density, velocity, sigma = calculate_profiles(part_data.masses.value[part_data.bound_particles_only],
+                                                      part_data.coordinates.value[part_data.bound_particles_only, :],
+                                                      part_data.velocities.value[part_data.bound_particles_only],
+                                                      part_data.cross_section[part_data.bound_particles_only],
+                                                      radial_bins)
 
         sigma_all[:, i] = sigma
         density_all[:, i] = density
@@ -147,4 +146,18 @@ def compute_density_profiles(sim_info, log10_min_mass, log10_max_mass, structure
     return profile_data
 
 
+def calculate_halo_data(sim_info, halo_index, density_radial_bins, velocity_radial_bins):
 
+    part_data = particle_data.load_particle_data(sim_info, halo_index)
+
+    density, _, _ = calculate_profiles(part_data.masses.value[part_data.bound_particles_only],
+                                       part_data.coordinates.value[part_data.bound_particles_only, :],
+                                       part_data.velocities.value[part_data.bound_particles_only],
+                                       part_data.cross_section[part_data.bound_particles_only],
+                                       density_radial_bins)
+
+    velocity = calculate_Vcirc(part_data.masses.value[part_data.bound_particles_only],
+                               part_data.coordinates.value[part_data.bound_particles_only, :],
+                               velocity_radial_bins)
+
+    return density, velocity

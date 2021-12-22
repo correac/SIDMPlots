@@ -14,7 +14,7 @@ from plotter.rotation_curve import plot_rotation_relative_to_CDM
 from plotter.HMF import make_HMF, plot_HMF
 from plotter.plot_halo_data import store_halo_data, plot_relations
 from plotter.core_expansion import plot_t0
-from merger_tree.build_tree import build_tree
+from merger_tree.make_tree_data import make_tree_data
 
 # from html import make_web, add_web_section, render_web, add_metadata_to_web
 # from loadplots import loadPlots
@@ -61,7 +61,7 @@ def main(config: ArgumentParser):
         elif web is not None:
             html.add_metadata_to_web(web, sim_info.snapshot)
 
-        # progenitor_index, merger_mass_ratio = build_tree(sim_info, 0)
+        #make_tree_data(sim_info)
 
         # profile_data_centrals_9 = compute_density_profiles(
         #     sim_info=sim_info,
@@ -111,7 +111,7 @@ def main(config: ArgumentParser):
         #     profile_data=profile_data_satellites_11
         # )
         #
-        cosmic_scatter_rate = compute_scatter_rate(sim_info, cosmic_scatter_rate)
+        #cosmic_scatter_rate = compute_scatter_rate(sim_info, cosmic_scatter_rate)
         #
         # plot_rotation_curve(
         #     sim_info=sim_info,
@@ -146,7 +146,7 @@ def main(config: ArgumentParser):
 
     #     make_rotation_curve_data(sim_info=sim_info,
     #                              log10_min_mass=9.0,
-    #                              log10_max_mass=12.0)
+    #                              log10_max_mass=10.0)
     #
     # plot_rotation_curve_data(sim_info, output_name_list=output_name_list)
     # plot_rotation_relative_to_CDM(sim_info, output_name_list=output_name_list)
@@ -157,7 +157,7 @@ def main(config: ArgumentParser):
 
     # plot_t0(sim_info)
 
-    plot_cosmic_scatter_rate(cosmic_scatter_rate, sim_info, output_name_list)
+    #plot_cosmic_scatter_rate(cosmic_scatter_rate, sim_info, output_name_list)
     #
     # plot_profiles(profile_data=profile_data_centrals_9, sim_info=sim_info, output_name_list=output_name_list)
     # plot_profiles(profile_data=profile_data_satellites_9, sim_info=sim_info, output_name_list=output_name_list)

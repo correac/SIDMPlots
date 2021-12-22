@@ -4,18 +4,33 @@
 #python3 -i track_evolution.py \
 
 python3 sidmplots.py \
--d /scratch/tangosidm/Tango_sims/L025N752/DMONLY/SigmaConstant10 \
+-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaConstant00 \
 -s snapshot_0036.hdf5 \
 -c subhalo_0036.properties \
--n DML025N752SigmaConstant10 \
--o ./plots/
+-n DML025N752SigmaConstant00 \
+-o ~/SimulationData/mahti/L025N752/DMONLY/plots/
 
 python3 sidmplots.py \
--d /scratch/tangosidm/Tango_sims/L025N752/DMONLY/SigmaVelDep20Isotropic \
+-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaVelDep20Isotropic \
 -s snapshot_0036.hdf5 \
 -c subhalo_0036.properties \
 -n DML025N752SigmaVelDep20 \
--o ./plots/
+-o ~/SimulationData/mahti/L025N752/DMONLY/plots/
+
+python3 sidmplots.py \
+-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaConstant01 \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n DML025N752SigmaConstant01 \
+-o ~/SimulationData/mahti/L025N752/DMONLY/plots/
+
+python3 sidmplots.py \
+-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaConstant10 \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n DML025N752SigmaConstant10 \
+-o ~/SimulationData/mahti/L025N752/DMONLY/plots/
+
 
 #python3 sidmplots.py \
 #-d ~/SimulationData/mahti/L006N188/DMONLY/SigmaConstant00 \

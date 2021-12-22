@@ -118,13 +118,13 @@ class SimInfo:
             if check != None: self.cross_section = check
 
         # Object containing halo properties (from halo catalogue)
-        #self.halo_data = HaloCatalogue(
-        #    path_to_catalogue=f"{self.directory}/{self.catalogue_name}",
-        #    dm_particle_mass=self.dm_particle_mass
-        #)
-        #catalogue_base_name = "".join([s for s in self.catalogue_name if not s.isdigit() and s != "_"])
-        #catalogue_base_name = os.path.splitext(catalogue_base_name)[0]
-        #self.catalogue_base_name = catalogue_base_name
+        self.halo_data = HaloCatalogue(
+           path_to_catalogue=f"{self.directory}/{self.catalogue_name}",
+           dm_particle_mass=self.dm_particle_mass
+        )
+        catalogue_base_name = "".join([s for s in self.catalogue_name if not s.isdigit() and s != "_"])
+        catalogue_base_name = os.path.splitext(catalogue_base_name)[0]
+        self.catalogue_base_name = catalogue_base_name
 
         base_name = "".join([s for s in self.snapshot_name if not s.isdigit() and s != "_"])
         base_name = os.path.splitext(base_name)[0]
@@ -152,18 +152,18 @@ class SimInfo:
         )
 
         # We expect one file for particle groups
-        #if len(catalogue_groups_paths) == 1:
-        #    self.catalogue_groups = catalogue_groups_paths[0].split("/")[-1]
-        #else:
-        #    raise IOError("Couldn't find catalogue_groups file")
+        if len(catalogue_groups_paths) == 1:
+           self.catalogue_groups = catalogue_groups_paths[0].split("/")[-1]
+        else:
+           raise IOError("Couldn't find catalogue_groups file")
 
         # We expect two files: one for bound and the other for unbound particles
-        #if len(catalogue_particles_paths) == 2:
-        #    for path in catalogue_particles_paths:
-        #        if path.find("unbound") == -1:
-        #            self.catalogue_particles = path.split("/")[-1]
-        #else:
-        #    raise IOError("Couldn't find catalogue_particles file")
+        if len(catalogue_particles_paths) == 2:
+           for path in catalogue_particles_paths:
+               if path.find("unbound") == -1:
+                   self.catalogue_particles = path.split("/")[-1]
+        else:
+           raise IOError("Couldn't find catalogue_particles file")
 
         return
 
