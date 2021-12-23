@@ -16,7 +16,6 @@ class load_particle_data:
         Parameters
         ----------
         """
-
         mask = sw.mask(f"{sim_info.directory}/{sim_info.snapshot_name}")
 
         # The full metadata object is available from within the mask
@@ -35,7 +34,7 @@ class load_particle_data:
             y = sim_info.halo_data.yminpot[index]
             z = sim_info.halo_data.zminpot[index]
         
-        origin = unyt.unyt_array([x, y, z], 'Mpc')
+        origin = unyt.unyt_array([x, y, z], 'Mpc') / sim_info.a #to comoving
 
         # region is a 3x2 list [[left, right], [bottom, top], [front, back]]
         region = [[-0.5 * b + o, 0.5 * b + o] for b, o in zip(size, origin)]
@@ -50,7 +49,7 @@ class load_particle_data:
         self.bound_particles_only = self.select_bound_particles(sim_info, halo_index)
 
         self.coordinates = data.dark_matter.coordinates.to("Mpc") * sim_info.a
-        self.coordinates -= origin  # centering
+        self.coordinates -= origin * sim_info.a  # centering
         self.coordinates *= 1e3     # to kpc
 
         if index == None:

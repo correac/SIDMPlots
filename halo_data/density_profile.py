@@ -159,12 +159,10 @@ def calculate_halo_data(sim_info, halo_index, density_radial_bins, velocity_radi
     for i in tqdm(range(num_haloes)):
 
         if halo_index[i] == -1: continue # no progenitor-found case
-        print("halo", i, halo_index[i])
 
         part_data = particle_data.load_particle_data(sim_info, halo_index[i])
 
-        if len(part_data.bound_particles_only) < 10:
-            return np.zeros(len(density_radial_bins)-1), np.zeros(len(velocity_radial_bins)-1)
+        if len(part_data.bound_particles_only) < 10: continue
 
         density[:,i], _, _ = calculate_profiles(part_data.masses.value[part_data.bound_particles_only],
                                             part_data.coordinates.value[part_data.bound_particles_only, :],
