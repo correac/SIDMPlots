@@ -11,7 +11,7 @@ def bin_centers(radial_bins):
     return 0.5 * (outer + inner)
 
 
-def load_internal_evolution(sim_info, progenitor_index):
+def load_internal_evolution(sim_info, progenitor_index, output_file):
 
     initial_snap = sim_info.initial_snap
     final_snap = 10
