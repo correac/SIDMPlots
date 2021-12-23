@@ -35,6 +35,7 @@ class load_particle_data:
             x = sim_info.halo_data.xminpot[index]
             y = sim_info.halo_data.yminpot[index]
             z = sim_info.halo_data.zminpot[index]
+        
         origin = unyt.unyt_array([x, y, z], 'Mpc')
 
         # region is a 3x2 list [[left, right], [bottom, top], [front, back]]
@@ -103,7 +104,7 @@ class load_particle_data:
 
         halo_start_position = group_file["Offset"][halo_index]
         halo_end_position = group_file["Offset"][halo_index + 1]
-
+        
         particle_ids_in_halo = particles_file["Particle_IDs"][halo_start_position:halo_end_position]
 
         _, _, mask = numpy.intersect1d(

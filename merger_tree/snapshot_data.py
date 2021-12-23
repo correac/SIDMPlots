@@ -11,7 +11,7 @@ class snapshot_info:
 
         self.directory = sim_info.directory
         self.catalogue_name = sim_info.catalogue_base_name + "_%04i.properties" % snap
-        self.snapshot_name = sim_info.base_name + "_%04i.hdf5" % snap
+        self.snapshot_name = sim_info.snapshot_base_name + "_%04i.hdf5" % snap
         self.output_path = sim_info.output_path
 
         # Find the group and particle catalogue files

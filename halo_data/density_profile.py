@@ -150,11 +150,13 @@ def calculate_halo_data(sim_info, halo_index, density_radial_bins, velocity_radi
 
     part_data = particle_data.load_particle_data(sim_info, halo_index)
 
+    if len(part_data.bound_particles_only) < 10: return np.zeros(len(density_radial_bins)-1), np.zeros(len(velocity_radial_bins)-1)
+
     density, _, _ = calculate_profiles(part_data.masses.value[part_data.bound_particles_only],
-                                       part_data.coordinates.value[part_data.bound_particles_only, :],
-                                       part_data.velocities.value[part_data.bound_particles_only],
-                                       part_data.cross_section[part_data.bound_particles_only],
-                                       density_radial_bins)
+                                        part_data.coordinates.value[part_data.bound_particles_only, :],
+                                        part_data.velocities.value[part_data.bound_particles_only],
+                                        part_data.cross_section[part_data.bound_particles_only],
+                                        density_radial_bins)
 
     velocity = calculate_Vcirc(part_data.masses.value[part_data.bound_particles_only],
                                part_data.coordinates.value[part_data.bound_particles_only, :],

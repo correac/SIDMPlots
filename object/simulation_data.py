@@ -132,6 +132,8 @@ class SimInfo:
         newest_snap_name = max(glob.glob(f"{self.directory}/{base_name}_*.hdf5"), key=os.path.getctime)
         self.n_snapshots = int(newest_snap_name.replace(f"{self.directory}/{base_name}_", "").replace(".hdf5", "")) + 1
 
+        num_snap = "".join([s for s in self.catalogue_name if s.isdigit()])
+        self.initial_snap = int(num_snap)
         self.snapshot_base_name = base_name
 
         print(f"Data from run '{self.simulation_name}' has been loaded! \n")

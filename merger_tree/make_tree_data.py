@@ -1,13 +1,13 @@
 import numpy as np
 from .build_tree import build_tree
 import h5py
-import tqdm
+from tqdm import tqdm
 
 def make_tree_data(sim_info):
 
     select_sub_sample = np.where(
         (sim_info.halo_data.log10_halo_mass >= 9) &
-        (sim_info.halo_data.log10_halo_mass <= 9.2))[0]
+        (sim_info.halo_data.log10_halo_mass <= 9.01))[0]
 
     select_type = np.where(sim_info.halo_data.structure_type[select_sub_sample] > 10)[0]
 
@@ -27,9 +27,9 @@ def make_tree_data(sim_info):
 
         # Write data to file while it is being calculated..
         MH = f.create_dataset('Mass_%04i'%i, data=tree_data['M200crit'])
-        MH = f.create_dataset('Density_%04i'%i, data=tree_data['Density'])
-        MH = f.create_dataset('Velocity_%04i'%i, data=tree_data['Velocity'])
-        MH = f.create_dataset('Redshift_%04i'%i, data=tree_data['Redshift'])
+        MH = f.create_dataset('Density_%04i'%i, data=tree_data['density'])
+        MH = f.create_dataset('Velocity_%04i'%i, data=tree_data['velocity'])
+        MH = f.create_dataset('Redshift_%04i'%i, data=tree_data['redshift'])
         MH = f.create_dataset('Structure_Type_%04i'%i, data=tree_data['structure_type'])
         MH = f.create_dataset('Merger_mass_ratio_%04i'%i, data=tree_data['merger_mass_ratio'])
 

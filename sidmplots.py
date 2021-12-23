@@ -61,7 +61,7 @@ def main(config: ArgumentParser):
         elif web is not None:
             html.add_metadata_to_web(web, sim_info.snapshot)
 
-        #make_tree_data(sim_info)
+        make_tree_data(sim_info)
 
         # profile_data_centrals_9 = compute_density_profiles(
         #     sim_info=sim_info,
