@@ -159,6 +159,7 @@ def calculate_halo_data(sim_info, halo_index, density_radial_bins, velocity_radi
     for i in tqdm(range(num_haloes)):
 
         if halo_index[i] == -1: continue # no progenitor-found case
+        print("halo", i, halo_index[i])
 
         part_data = particle_data.load_particle_data(sim_info, halo_index[i])
 

@@ -15,16 +15,16 @@ class snapshot_info:
         self.output_path = sim_info.output_path
 
         # Find the group and particle catalogue files
-        #self.__find_groups_and_particles_catalogues()
+        self.__find_groups_and_particles_catalogues()
 
         # Load snapshot via swiftsimio
-        #self.snapshot = swiftsimio.load(f"{self.directory}/{self.snapshot_name}")
+        self.snapshot = swiftsimio.load(f"{self.directory}/{self.snapshot_name}")
 
         # Load conversion units
-        #self.__load_conversion()
+        self.__load_conversion()
 
         # Load cosmological params
-        #self.__load_cosmology()
+        self.__load_cosmology()
         return
 
     def __load_conversion(self) -> None:
