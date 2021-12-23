@@ -1,6 +1,7 @@
 import numpy as np
 from halo_data import density_profile
 from .snapshot_data import snapshot_info
+import h5py
 import time
 
 def bin_centers(radial_bins):
@@ -20,31 +21,35 @@ def load_internal_evolution(sim_info, progenitor_index, output_file):
     radial_bins = np.arange(-1, 3, 0.1)
     radial_bins = 10**radial_bins
     centered_radial_bins = bin_centers(radial_bins)  # kpc
-    density = np.zeros((len(centered_radial_bins),initial_snap - final_snap))
 
     vel_radial_bins = np.arange(0.2, 25, 0.25)
     centered_velocity_radial_bins = bin_centers(vel_radial_bins)  # kpc
-    velocity = np.zeros((len(centered_velocity_radial_bins),initial_snap - final_snap))
 
-    density[:,0], velocity[:,0] = density_profile.calculate_halo_data(sim_info, progenitor_index[0],
-                                                                      radial_bins, vel_radial_bins)
+    density, velocity = \
+        density_profile.calculate_halo_data(sim_info, progenitor_index[:,0], radial_bins, vel_radial_bins)
+
+    data_file = h5py.File(output_file, 'a')
+    f = data_file.create_group('Profile_evolution')
+    f.create_dataset('Density_snapshot_%04i'%initial_snap, data=density)
+    f.create_dataset('Velocity_snapshot_%04i'%initial_snap, data=velocity)
 
     for snap in range(initial_snap-1,final_snap,-1):
 
-        i = initial_snap - snap
         print('Reading snapshot data', snap)
         start_time = time.time()
 
+        i = initial_snap - snap
         snapshot_data = snapshot_info(sim_info, snap)
-        density[:, i], velocity[:, i] = \
-            density_profile.calculate_halo_data(snapshot_data, progenitor_index[i], radial_bins, vel_radial_bins)
+        density, velocity = \
+            density_profile.calculate_halo_data(snapshot_data, progenitor_index[:,i], radial_bins, vel_radial_bins)
 
         print("--- %s seconds ---" % (time.time() - start_time))
 
-        if np.sum(density[:, initial_snap-snap]) == 0.:break
+        f.create_dataset('Density_snapshot_%04i' % snap, data=density)
+        f.create_dataset('Velocity_snapshot_%04i' % snap, data=velocity)
 
-    evolution_data = {'density': density,'velocity': velocity,
-                      'density_radial_bins': centered_radial_bins,
-                      'velocity_radial_bins': centered_velocity_radial_bins}
+    f.create_dataset('Density_radial_bins', data=centered_radial_bins)
+    f.create_dataset('Velocity_radial_bins', data=centered_velocity_radial_bins)
+    data_file.close()
 
-    return evolution_data
+    return

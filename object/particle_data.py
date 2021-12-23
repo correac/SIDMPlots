@@ -5,7 +5,6 @@ import h5py
 from typing import Tuple
 import velociraptor
 
-
 class load_particle_data:
     """
     Class containing particles properties
@@ -102,16 +101,16 @@ class load_particle_data:
         particles_file = h5py.File(f"{sim_info.directory}/{sim_info.catalogue_particles}", "r")
         group_file = h5py.File(f"{sim_info.directory}/{sim_info.catalogue_groups}", "r")
 
-        halo_start_position = group_file["Offset"][halo_index]
-        halo_end_position = group_file["Offset"][halo_index + 1]
+        halo_start_position = group_file["Offset"][halo_index.astype('int')]
+        halo_end_position = group_file["Offset"][halo_index.astype('int') + 1]
         
         particle_ids_in_halo = particles_file["Particle_IDs"][halo_start_position:halo_end_position]
 
         _, _, mask = numpy.intersect1d(
-            particle_ids_in_halo,
-            self.ids,
-            assume_unique=True,
-            return_indices=True,
+           particle_ids_in_halo,
+           self.ids,
+           assume_unique=True,
+           return_indices=True,
         )
 
         # Ensure that there are no negative indices

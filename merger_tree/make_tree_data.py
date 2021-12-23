@@ -21,11 +21,3 @@ def make_tree_data(sim_info):
     progenitor_index = build_tree(sim_info, halo_index, output_file)
 
     load_internal_evolution(sim_info, progenitor_index, output_file)
-
-    # f.create_dataset('Density_%04i'%i, data=evolution_data['density'])
-    # f.create_dataset('Velocity_%04i'%i, data=evolution_data['velocity'])
-
-
-    # f.create_dataset('Density_radial_bins', data=evolution_data['density_radial_bins'])
-    # f.create_dataset('Velocity_radial_bins', data=evolution_data['velocity_radial_bins'])
-    # data_file.close()
