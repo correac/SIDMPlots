@@ -4,7 +4,7 @@
 #python3 -i track_evolution.py \
 
 python3 sidmplots.py \
--d /projects/0/einf180/Tango_sims/L025N752/DMONLY/SigmaVelDep20Isotropic \
+-d ~/SimulationData/mahti/L025N752/DMONLY/SigmaVelDep20Isotropic \
 -s snapshot_0036.hdf5 \
 -c subhalo_0036.properties \
 -n DML025N752SigmaVelDep20 \

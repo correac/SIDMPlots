@@ -27,9 +27,9 @@ class load_particle_data:
 
             catalogue_file = f"{sim_info.directory}/{sim_info.catalogue_name}"
             catalogue = velociraptor.load(catalogue_file)
-            x = catalogue.positions.xcminpot.to("Mpc").value[halo_index]
-            y = catalogue.positions.ycminpot.to("Mpc").value[halo_index]
-            z = catalogue.positions.zcminpot.to("Mpc").value[halo_index]
+            x = catalogue.positions.xcminpot.to("Mpc").value[halo_index.astype('int')]
+            y = catalogue.positions.ycminpot.to("Mpc").value[halo_index.astype('int')]
+            z = catalogue.positions.zcminpot.to("Mpc").value[halo_index.astype('int')]
 
         else :
             x = sim_info.halo_data.xminpot[index]
@@ -57,9 +57,9 @@ class load_particle_data:
         if index == None:
             catalogue_file = f"{sim_info.directory}/{sim_info.catalogue_name}"
             catalogue = velociraptor.load(catalogue_file)
-            vx = catalogue.velocities.vxcminpot.to("km/s").value[halo_index]
-            vy = catalogue.velocities.vycminpot.to("km/s").value[halo_index]
-            vz = catalogue.velocities.vzcminpot.to("km/s").value[halo_index]
+            vx = catalogue.velocities.vxcminpot.to("km/s").value[halo_index.astype('int')]
+            vy = catalogue.velocities.vycminpot.to("km/s").value[halo_index.astype('int')]
+            vz = catalogue.velocities.vzcminpot.to("km/s").value[halo_index.astype('int')]
 
         else:
             vx = sim_info.halo_data.vxminpot[index]
