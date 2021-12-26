@@ -8,8 +8,8 @@ from .load_internal_evolution import load_internal_evolution
 def make_tree_data(sim_info):
 
     select_sub_sample = np.where(
-        (sim_info.halo_data.log10_halo_mass >= 9) &
-        (sim_info.halo_data.log10_halo_mass <= 9.001))[0]
+        (sim_info.halo_data.log10_halo_mass >= 9.0) &
+        (sim_info.halo_data.log10_halo_mass <= 9.5))[0]
 
     select_type = np.where(sim_info.halo_data.structure_type[select_sub_sample] > 10)[0]
 

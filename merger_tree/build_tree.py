@@ -4,6 +4,7 @@ import h5py
 from .snapshot_data import snapshot_info
 from .tree_dataset import TreeCatalogue
 import time
+from tqdm import tqdm
 
 def look_for_progenitor_index(progenitor_offset, num_progenitors, progenitors_ID, ID, m200c):
 
@@ -31,9 +32,11 @@ def look_for_progenitor_index(progenitor_offset, num_progenitors, progenitors_ID
 
         if len(indx_ID) > 1:
             other_progenitors = np.where(m200c[indx_ID] != m200c[pro_indx[i].astype('int')])[0]
-            mass_progenitors = m200c[indx_ID[other_progenitors].astype('int')]
-            ratio = mass_progenitors / m200c[pro_indx[i].astype('int')]
-            merger_ratio[i] = np.max(ratio)
+
+            if len(other_progenitors) > 1:
+                mass_progenitors = m200c[indx_ID[other_progenitors].astype('int')]
+                ratio = mass_progenitors / m200c[pro_indx[i].astype('int')]
+                merger_ratio[i] = np.max(ratio)
 
 
     return pro_indx, merger_ratio
@@ -77,7 +80,7 @@ def build_tree(sim_info, halo_index, output_file):
     progenitors_ID = tree_data.catalogue.Progenitors.value
     #print("--- %s seconds ---" % (time.time() - start_time))
 
-    for snap in range(initial_snap-1,final_snap,-1):
+    for snap in tqdm(range(initial_snap-1,final_snap,-1)):
 
         i = initial_snap - snap
         #print('snapshot', snap)
