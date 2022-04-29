@@ -22,7 +22,7 @@ def load_internal_evolution(sim_info, progenitor_index, output_file):
     radial_bins = 10**radial_bins
     centered_radial_bins = bin_centers(radial_bins)  # kpc
 
-    vel_radial_bins = np.arange(0.2, 25, 0.25)
+    vel_radial_bins = np.arange(0.1, 25, 0.25)
     centered_velocity_radial_bins = bin_centers(vel_radial_bins)  # kpc
 
     density, velocity = \

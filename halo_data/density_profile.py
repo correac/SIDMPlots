@@ -75,6 +75,8 @@ def calculate_profiles(mass, pos, vel, sigma, radial_bins):
     # Radial coordinates [kpc units]
     r = np.sqrt(np.sum(pos ** 2, axis=1))
 
+    print(len(r),len(mass),len(sigma))
+
     SumMasses, _, _ = stat.binned_statistic(x=r, values=mass, statistic="sum", bins=radial_bins, )
     density = (SumMasses / bin_volumes(radial_bins))  # Msun/kpc^3
 
@@ -108,6 +110,8 @@ def compute_density_profiles(sim_info, log10_min_mass, log10_max_mass, structure
     log10_M200 = np.median(sim_info.halo_data.log10_halo_mass[sample])
     rs = np.median(sim_info.halo_data.scale_radius[sample]) * 1e3  # kpc
 
+    print('sample size',len(sample))
+
     num_halos = len(sample)
     sigma_all = np.zeros((len(centers), num_halos))
     density_all = np.zeros((len(centers), num_halos))
@@ -117,6 +121,9 @@ def compute_density_profiles(sim_info, log10_min_mass, log10_max_mass, structure
 
         halo_indx = sim_info.halo_data.halo_index[sample[i]]
         part_data = particle_data.load_particle_data(sim_info, halo_indx, sample[i])
+
+        num_part = len(part_data.masses.value[part_data.bound_particles_only])
+        if num_part < 10: continue
 
         density, velocity, sigma = calculate_profiles(part_data.masses.value[part_data.bound_particles_only],
                                                       part_data.coordinates.value[part_data.bound_particles_only, :],

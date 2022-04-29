@@ -113,9 +113,11 @@ class SimInfo:
         snapshot_file = f"{self.directory}/{self.snapshot_name}"
 
         self.cross_section = 0.
+        SIDM = "/SIDMScheme"
         with h5py.File(snapshot_file, "r") as sim:
-            check = sim["/SIDMScheme"].attrs.get("SIDM cross section [cgs units]")
-            if check != None: self.cross_section = check
+            if SIDM in sim.keys():
+                check = sim["/SIDMScheme"].attrs.get("SIDM cross section [cgs units]")
+                if check != None: self.cross_section = check
 
         # Object containing halo properties (from halo catalogue)
         self.halo_data = HaloCatalogue(

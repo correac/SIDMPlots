@@ -365,6 +365,9 @@ def plot_rotation_curve(sim_info, log10_min_mass, log10_max_mass, structure_type
         halo_indx = sim_info.halo_data.halo_index[sample[i]]
         part_data = particle_data.load_particle_data(sim_info, halo_indx, sample[i])
 
+        num_part = len(part_data.masses.value[part_data.bound_particles_only])
+        if num_part < 10: continue
+
         circular_velocity = calculate_Vcirc(part_data.masses.value[part_data.bound_particles_only],
                                             part_data.coordinates.value[part_data.bound_particles_only,:],
                                             radial_bins)

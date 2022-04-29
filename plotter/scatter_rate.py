@@ -126,7 +126,8 @@ def analytic_scatter(siminfo, z, Mmin, Mmax):
 
 def compute_scatter_rate(siminfo, scatter_rate_data):
 
-    snapshot = sw.load(f"{siminfo.directory}/{siminfo.snapshot_base_name}"+"_%04i.hdf5"%0)
+    initial = 10
+    snapshot = sw.load(f"{siminfo.directory}/{siminfo.snapshot_base_name}"+"_%04i.hdf5"%initial)
     old_time = snapshot.metadata.time.to("Gyr").value
 
     nparts = siminfo.num_dm_particles
@@ -136,7 +137,7 @@ def compute_scatter_rate(siminfo, scatter_rate_data):
     redshift[0] = snapshot.metadata.redshift
     previous_events = 0
 
-    for i in range(1,siminfo.n_snapshots):
+    for i in range(initial,siminfo.n_snapshots):
 
         snapshot = sw.load(f"{siminfo.directory}/{siminfo.snapshot_base_name}" + "_%04i.hdf5" %i)
         if (hasattr(snapshot.dark_matter,'sidm_events')):

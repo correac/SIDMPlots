@@ -101,8 +101,11 @@ class load_particle_data:
         group_file = h5py.File(f"{sim_info.directory}/{sim_info.catalogue_groups}", "r")
 
         halo_start_position = group_file["Offset"][halo_index.astype('int')]
-        halo_end_position = group_file["Offset"][halo_index.astype('int') + 1]
-        
+        try:
+            halo_end_position = group_file["Offset"][halo_index.astype('int') + 1]
+        except IndexError:
+            return numpy.array([-1])
+
         particle_ids_in_halo = particles_file["Particle_IDs"][halo_start_position:halo_end_position]
 
         _, _, mask = numpy.intersect1d(

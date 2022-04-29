@@ -144,9 +144,8 @@ def main(config: ArgumentParser):
         #
         # halo_data = store_halo_data(sim_info=sim_info, halo_data=halo_data)
 
-    #     make_rotation_curve_data(sim_info=sim_info,
-    #                              log10_min_mass=9.0,
-    #                              log10_max_mass=10.0)
+        #make_rotation_curve_data(sim_info=sim_info, log10_min_mass=9.0, log10_max_mass=12.0)
+    
     #
     # plot_rotation_curve_data(sim_info, output_name_list=output_name_list)
     # plot_rotation_relative_to_CDM(sim_info, output_name_list=output_name_list)
