@@ -104,19 +104,19 @@ class ArgumentWithInputFiles(object):
     """
 
     # List of snapshots that are to be processed.
-    snapshot_list: List[str]
+    snapshot_list: str
     # List of catalogues (in the same order as snapshots) to be processed.
-    catalogue_list: List[str]
+    catalogue_list: str
     # List of directories that contain the above snapshots and catalogues
-    directory_list: List[str]
+    directory_list: str
     # List of representative names for the snapshots; may be a list of Nones
-    name_list: List[Optional[str]]
+    name_list: str
     # Directory to output the figure to
     output_directory: str
     # List of file inputs that are to be processed.
-    input_file_list: List[str]
+    input_file_list: str
     # List of file inputs that are to be processed.
-    input_file_list_CDM: List[str]
+    input_file_list_CDM: str
 
     def __init__(self):
 
@@ -201,11 +201,10 @@ class ArgumentWithInputFiles(object):
             self.name_list = [None] * len(self.directory_list)
 
         self.output_directory = args.output_directory
-        self.number_of_inputs = len(args.snapshots)
 
         print("Parsed arguments:")
         print("---------------------\n")
         print(f"Run names: {self.name_list}")
         print(f"Output directory: {self.output_directory}")
-        print(f"Input file: {self.input_list}")
+        print(f"Input file: {self.input_file_list}")
         print("")

@@ -18,14 +18,14 @@ def calculate_vcirc_at_fiducial_radius(radius, velocity, M200c):
 def calculate_ratio(output_path, input_file, input_file_CDM):
 
     # Let's read some data :
-    filename = f"{output_path}/f{input_file}.hdf5"
+    filename = output_path+"/"+input_file+".hdf5"
     with h5py.File(filename, "r") as file:
         M200c = file["Assembly_history/Mass"][:][:]
         M200c = np.log10(M200c[:,0])
         Velocity = file["Profile_evolution/Velocity_snapshot_0036"][:][:]
         radial_bins = file["Profile_evolution/Velocity_radial_bins"][:]
 
-    filename = f"{output_path}/f{input_file_CDM}.hdf5"
+    filename = output_path+"/"+input_file_CDM+".hdf5"
     with h5py.File(filename, "r") as file:
         CDM_M200c = file["Assembly_history/Mass"][:][:]
         CDM_M200c = np.log10(CDM_M200c[:,0])

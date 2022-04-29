@@ -13,10 +13,7 @@ if __name__ == "__main__":
     config = ArgumentWithInputFiles()
 
     # Fetch relevant input parameters from lists
-    directory = config.directory_list
-    snapshot = config.snapshot_list
-    catalogue = config.catalogue_list
-    sim_name = config.name_list
+    sim_name = config.name_list[0]
     output = config.output_directory
     input_file = config.input_file_list
     input_file_CDM = config.input_file_list_CDM

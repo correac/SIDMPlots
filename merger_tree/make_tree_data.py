@@ -24,8 +24,14 @@ def make_tree_data(sim_info):
 def add_tree_data(sim_info, input_file):
 
     # Output data
-    output_file = f"{sim_info.output_path}/f{input_file}.hdf5"
+
+    output_file = sim_info.output_path+"/"+input_file+".hdf5"
     with h5py.File(output_file, "r") as file:
         progenitor_index = file["Assembly_history/Progenitor_index"][:][:]
+        M200c = file["Assembly_history/Mass"][:][:]
+        M200c = np.log10(M200c[:,0])
 
-    load_velocity_dispersion(sim_info, progenitor_index, output_file)
+    select_sub_sample = np.where((M200c >= 9.0) & (M200c <= 9.5))[0]
+
+    output_file = sim_info.output_path+"/"+input_file+"_90_95.hdf5" 
+    load_velocity_dispersion(sim_info, progenitor_index[select_sub_sample,:], output_file)
