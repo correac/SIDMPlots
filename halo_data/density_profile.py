@@ -75,8 +75,6 @@ def calculate_profiles(mass, pos, vel, sigma, radial_bins):
     # Radial coordinates [kpc units]
     r = np.sqrt(np.sum(pos ** 2, axis=1))
 
-    print(len(r),len(mass),len(sigma))
-
     SumMasses, _, _ = stat.binned_statistic(x=r, values=mass, statistic="sum", bins=radial_bins, )
     density = (SumMasses / bin_volumes(radial_bins))  # Msun/kpc^3
 
@@ -109,8 +107,6 @@ def compute_density_profiles(sim_info, log10_min_mass, log10_max_mass, structure
     sample = select_sub_sample[select_type]
     log10_M200 = np.median(sim_info.halo_data.log10_halo_mass[sample])
     rs = np.median(sim_info.halo_data.scale_radius[sample]) * 1e3  # kpc
-
-    print('sample size',len(sample))
 
     num_halos = len(sample)
     sigma_all = np.zeros((len(centers), num_halos))
@@ -182,3 +178,28 @@ def calculate_halo_data(sim_info, halo_index, density_radial_bins, velocity_radi
                                    velocity_radial_bins)
 
     return density, velocity
+
+
+def calculate_velocity_dispersion(sim_info, halo_index, density_radial_bins):
+
+    num_haloes = len(halo_index)
+
+    centered_radial_bins = bin_centers(density_radial_bins)  # kpc
+    veldisp = np.zeros((len(centered_radial_bins), num_haloes))
+    sigmaprofile = np.zeros((len(centered_radial_bins), num_haloes))
+
+    for i in tqdm(range(num_haloes)):
+
+        if halo_index[i] == -1: continue # no progenitor-found case
+
+        part_data = particle_data.load_particle_data(sim_info, halo_index[i])
+
+        if len(part_data.bound_particles_only) < 10: continue
+
+        _, veldisp[:,i], sigmaprofile[:,i] = calculate_profiles(part_data.masses.value[part_data.bound_particles_only],
+                                            part_data.coordinates.value[part_data.bound_particles_only, :],
+                                            part_data.velocities.value[part_data.bound_particles_only],
+                                            part_data.cross_section[part_data.bound_particles_only],
+                                            density_radial_bins)
+
+    return veldisp, sigmaprofile

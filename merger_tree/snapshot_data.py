@@ -3,6 +3,8 @@ import unyt
 import glob
 import os
 import swiftsimio
+import velociraptor
+import numpy as np
 
 
 class snapshot_info:
@@ -126,3 +128,44 @@ class snapshot_info:
             raise IOError("Couldn't find catalogue_particles file")
 
         return
+
+    def load_halo_catalogue(self, mask):
+
+        # Load catalogue using velociraptor python library
+        catalogue = velociraptor.load(f"{self.directory}/{self.catalogue_name}")
+
+        # Compute the number of haloes following the selection mask
+        # self.number_of_haloes = mask.sum()
+        self.number_of_haloes = len(mask)
+
+        # Structure type
+        self.structure_type = catalogue.structure_type.structuretype[mask]
+
+        # Log10 halo mass in units of Msun
+        self.log10_halo_mass = np.log10(
+            catalogue.masses.mass_200crit.to("Msun").value[mask]
+        )
+
+        self.concentration = catalogue.concentration.cnfw.value[mask]
+        self.virial_radius = catalogue.radii.r_200crit.to("Mpc").value[mask]
+
+        self.scale_radius = self.virial_radius / self.concentration
+
+        self.halo_index = mask.copy()
+
+        self.xminpot = catalogue.positions.xcminpot.to("Mpc").value[mask]
+        self.yminpot = catalogue.positions.ycminpot.to("Mpc").value[mask]
+        self.zminpot = catalogue.positions.zcminpot.to("Mpc").value[mask]
+
+        self.vxminpot = catalogue.velocities.vxcminpot.to("km/s").value[mask]
+        self.vyminpot = catalogue.velocities.vycminpot.to("km/s").value[mask]
+        self.vzminpot = catalogue.velocities.vzcminpot.to("km/s").value[mask]
+
+        self.vmax = catalogue.velocities.vmax.to("km/s").value[mask]
+
+        self.xcom = catalogue.positions.xc.to("Mpc").value[mask]
+        self.ycom = catalogue.positions.yc.to("Mpc").value[mask]
+        self.zcom = catalogue.positions.zc.to("Mpc").value[mask]
+
+
+

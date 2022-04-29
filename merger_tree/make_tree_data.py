@@ -1,9 +1,7 @@
 import numpy as np
 import h5py
-from tqdm import tqdm
-
 from .build_tree import build_tree
-from .load_internal_evolution import load_internal_evolution
+from .load_internal_evolution import load_internal_evolution, load_velocity_dispersion
 
 def make_tree_data(sim_info):
 
@@ -21,3 +19,13 @@ def make_tree_data(sim_info):
     progenitor_index = build_tree(sim_info, halo_index, output_file)
 
     load_internal_evolution(sim_info, progenitor_index, output_file)
+
+
+def add_tree_data(sim_info):
+
+    # Output data
+    output_file = f"{sim_info.output_path}/Tree_data_" + sim_info.simulation_name + "_satellites_95_10.hdf5"
+    with h5py.File(output_file, "r") as file:
+        progenitor_index = file["Assembly_history/Progenitor_index"][:][:]
+
+    load_velocity_dispersion(sim_info, progenitor_index, output_file)

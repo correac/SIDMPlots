@@ -62,3 +62,7 @@ class HaloCatalogue:
         self.vzminpot = catalogue.velocities.vzcminpot.to("km/s").value[mask]
 
         self.vmax = catalogue.velocities.vmax.to("km/s").value[mask]
+
+        self.xcom = catalogue.positions.xc.to("Mpc").value[mask]
+        self.ycom = catalogue.positions.yc.to("Mpc").value[mask]
+        self.zcom = catalogue.positions.zc.to("Mpc").value[mask]

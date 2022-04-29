@@ -1,44 +1,97 @@
-import numpy as np
 import h5py
-import scipy.stats as stat
-import os
-from pylab import *
-from scipy.optimize import curve_fit
+import numpy as np
 from scipy.integrate import odeint
 from scipy.interpolate import interp1d
-from scipy.integrate import quad
-from scipy.optimize import fsolve
-from scipy.optimize import root
-from tqdm import tqdm
-from object import particle_data
+import emcee
+from multiprocessing import Pool
+import time
+from scipy.optimize import minimize
 
+def log_prior_pse(theta):
+    """
+    The natural logarithm of the prior probability.
+    It sets prior to 1 (log prior to 0) if params are in range, and zero (-inf) otherwise.
+    Args: theta (tuple): a sample containing individual parameter values
+    """
+    r0, rho0, n0 = theta
+    log_prior = -np.inf
+    if 0.001 < r0 < 5 and 5 < rho0 < 9 and 0 < n0 < 2 : log_prior = 0.0
 
-class make_profile_params:
+    return log_prior
 
-    def __init__(self,mass):
-        self.log10_M200c = mass
-        self.rho0_isothermal = []
-        self.r0_isothermal = []
-        self.n0_isothermal= []
-        self.rho0_pse_isothermal = []
-        self.r0_pse_isothermal = []
-        self.n0_pse_isothermal= []
-        self.v0 = []
-        self.sigma0 = []
+def log_prior(theta):
+    """
+    The natural logarithm of the prior probability.
+    It sets prior to 1 (log prior to 0) if params are in range, and zero (-inf) otherwise.
+    Args: theta (tuple): a sample containing individual parameter values
+    """
+    r0, rho0 = theta
+    log_prior = -np.inf
+    if 0.001 < r0 < 5 and 5 < rho0 < 9 : log_prior = 0.0
 
-    def append_data(self, rho0_isothermal, r0_isothermal, n0_isothermal,
-                    rho0_pse_isothermal, r0_pse_isothermal, n0_pse_isothermal,
-                    v0, sigma0):
-        self.rho0_isothermal = np.append(self.rho0_isothermal, rho0_isothermal)
-        self.r0_isothermal = np.append(self.r0_isothermal, r0_isothermal)
-        self.n0_isothermal = np.append(self.n0_isothermal, n0_isothermal)
+    return log_prior
 
-        self.rho0_pse_isothermal = np.append(self.rho0_pse_isothermal, rho0_pse_isothermal)
-        self.r0_pse_isothermal = np.append(self.r0_pse_isothermal, r0_pse_isothermal)
-        self.n0_pse_isothermal = np.append(self.n0_pse_isothermal, n0_pse_isothermal)
-        self.v0 = np.append(self.v0, v0)
-        self.sigma0 = np.append(self.sigma0, sigma0)
+def log_posterior(theta, x, y, yerr):
+    """
+    The natural logarithm of the joint posterior.
 
+    Args:
+        theta (tuple): a sample containing individual parameter values
+        x (array): values over which the data/model is defined
+        y (array): the set of data
+        yerr (array): the standard deviation of the data points
+    """
+    lp = log_prior(theta)
+    if not np.isfinite(lp):
+        return -np.inf
+    return lp + log_likelihood(theta, x, y, yerr)
+
+def log_posterior_pse(theta, x, y, yerr):
+    """
+    The natural logarithm of the joint posterior.
+
+    Args:
+        theta (tuple): a sample containing individual parameter values
+        x (array): values over which the data/model is defined
+        y (array): the set of data
+        yerr (array): the standard deviation of the data points
+    """
+    lp = log_prior_pse(theta)
+    if not np.isfinite(lp):
+        return -np.inf
+    return lp + log_likelihood_pse(theta, x, y, yerr)
+
+def log_likelihood(theta, x, y, yerr):
+    """
+    The natural logarithm of the joint likelihood.
+
+    Args:
+        theta (tuple): a sample containing individual parameter values
+        x (array): values over which the data/model is defined
+        y (array): the set of data
+        yerr (array): the standard deviation of the data points
+    """
+    r0, rho0 = theta
+    model = fit_isothermal_model(x, r0, rho0)
+    sigma2 = yerr**2
+    log_l = -0.5 * np.sum((y - model) ** 2 / sigma2)
+    return log_l
+
+def log_likelihood_pse(theta, x, y, yerr):
+    """
+    The natural logarithm of the joint likelihood.
+
+    Args:
+        theta (tuple): a sample containing individual parameter values
+        x (array): values over which the data/model is defined
+        y (array): the set of data
+        yerr (array): the standard deviation of the data points
+    """
+    r0, rho0, n0 = theta
+    model = fit_pseudo_isothermal_model(x, r0, rho0, n0)
+    sigma2 = yerr**2
+    log_l = -0.5 * np.sum((y - model) ** 2 / sigma2)
+    return log_l
 
 def diff_isothermal_equation(f,x,n):
     """
@@ -52,6 +105,7 @@ def fit_pseudo_isothermal_model(xdata, a, b, n):
     """
     For this isothermal form I let the slope to vary.
     """
+    if n<0: return 0
     xrange = np.arange(-5, 5, 0.01)
     xrange = 10**xrange
     xrange = xrange / a
@@ -62,7 +116,11 @@ def fit_pseudo_isothermal_model(xdata, a, b, n):
     yrange = np.log10(yrange)
     finterpolate = interp1d(xrange, yrange)
     x = xdata / a
-    if a<=0 or np.max(x)>1e5 : return 0
+
+    max_x = 1e6
+    if len(x) > 1: max_x = np.max(x)
+    if a<=0 or max_x>1e5 : return 0
+
     ydata = finterpolate(x)
     f = b + ydata
     return f
@@ -79,177 +137,123 @@ def fit_isothermal_model(xdata, a, b):
     yrange = np.log10(yrange)
     finterpolate = interp1d(xrange, yrange)
     x = xdata / a
-    if a<=0 or np.max(x)>1e5 : return 0
+
+    max_x = 1e6
+    if len(x) > 1: max_x = np.max(x)
+    if a<=0 or max_x>1e5 : return 0
 
     ydata = finterpolate(x)
     f = b + ydata
     return f
 
+def run_mcmc(x, y, yerr, soln):
 
-def fit_profile(x, y, velocity, sigma, halo_index, sim_info):
+    pos = soln.x + 1e-4 * np.random.randn(32, 2)
+    nwalkers, ndim = pos.shape
+
+    with Pool() as pool:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, args=(x, y, yerr), pool=pool)
+        start = time.time()
+        sampler.run_mcmc(pos, 500, progress=True)
+        end = time.time()
+        multi_time = end - start
+        print("Multiprocessing took {0:.1f} minutes".format(multi_time / 60))
+
+    samples = sampler.get_chain(discard=100, thin=15, flat=True)
+    r0 = np.median(samples[:, 0])
+    rho0 = np.median(samples[:, 1])
+
+    print("Mean autocorrelation time: {0:.3f} steps".format(np.mean(sampler.get_autocorr_time(quiet=True))))
+    return r0, rho0
+
+def run_mcmc_pse(x, y, yerr, soln):
+
+    pos = soln.x + 1e-4 * np.random.randn(32, 3)
+    nwalkers, ndim = pos.shape
+
+    with Pool() as pool:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior_pse, args=(x, y, yerr), pool=pool)
+        start = time.time()
+        sampler.run_mcmc(pos, 500, progress=True)
+        end = time.time()
+        multi_time = end - start
+        print("Multiprocessing took {0:.1f} minutes".format(multi_time / 60))
+
+    samples = sampler.get_chain(discard=100, thin=15, flat=True)
+    r0 = np.median(samples[:, 0])
+    rho0 = np.median(samples[:, 1])
+    n0 = np.median(samples[:, 2])
+
+    print("Mean autocorrelation time: {0:.3f} steps".format(np.mean(sampler.get_autocorr_time(quiet=True))))
+    return r0, rho0, n0
+
+
+def fit_profile(x, y):
 
     nozero = y > 0
     x = x[nozero]
     y = y[nozero]
-    velocity = velocity[nozero]
-    sigma = sigma[nozero]
 
     # Let's define inner region as everything within 25 kpc
-    inner = x <= 25
+    inner = np.where((x <= 5) & (x >= 0.5))[0]
+
+    x = x[inner]
+    y = np.log10(y[inner])
+    yerr = np.ones(len(y)) * 0.1
 
     # First fit profile based on Isothermal model
-    popt, pcov = curve_fit(fit_isothermal_model, x[inner], np.log10(y[inner]), p0=[1, 10])
-    r0_full_iso = popt[0]
-    rho0_full_iso = popt[1]
-    ns0_full_iso = 0
+    np.random.seed(42)
+    nll = lambda *args: -log_likelihood(*args)
+    initial = np.array([1, 7])
+    soln = minimize(nll, initial, args=(x, y, yerr))
+    r0, rho0 = soln.x
+    print('=======')
+    print(r0, rho0)
+
+    r0, rho0 = run_mcmc(x, y, yerr, soln)
+    print(r0, rho0)
+    sol_iso = np.array([r0, rho0])
 
     # Let's also consider pseudo-Isothermal model
-    popt, pcov = curve_fit(fit_pseudo_isothermal_model, x[inner], np.log10(y[inner]), p0=[1, 10, 0])
-    r0_pse_iso = popt[0]
-    rho0_pse_iso = popt[1]
-    ns0_pse_iso = popt[2]
+    np.random.seed(42)
+    nll = lambda *args: -log_likelihood_pse(*args)
+    initial = np.array([1, 7, 0])
+    soln = minimize(nll, initial, args=(x, y, yerr))
+    r0, rho0, n0 = soln.x
+    print('=======')
+    print(r0, rho0, n0)
 
-    # Median velocity dispersion value in core
-    v0 = np.median(velocity[x <= 10])
+    r0, rho0, n0 = run_mcmc_pse(x, y, yerr, soln)
+    print(r0, rho0, n0)
+    sol_pse = np.array([r0, rho0, n0])
+    print('=======')
 
-    # Median velocity dispersion value in core
-    sigma0 = np.median(sigma[x <= 10])
-
-    # Plot parameters
-    params = {
-        "font.size": 12,
-        "font.family": "Times",
-        "text.usetex": True,
-        "figure.figsize": (4, 3),
-        "figure.subplot.left": 0.18,
-        "figure.subplot.right": 0.95,
-        "figure.subplot.bottom": 0.18,
-        "figure.subplot.top": 0.95,
-        "figure.subplot.wspace": 0.25,
-        "figure.subplot.hspace": 0.25,
-        "lines.markersize": 4,
-        "lines.linewidth": 1.5,
-        "figure.max_open_warning": 0,
-    }
-    rcParams.update(params)
-
-    #######################
-    # Plot the density profile
-    figure()
-    ax = plt.subplot(1, 1, 1)
-    grid(True)
-
-    plot(x[inner], np.log10(y[inner]), '-', color='tab:orange')
-
-    xrange = np.arange(-1,np.log10(25),0.2)
-    xrange = 10**xrange
-    plot(xrange, fit_isothermal_model(xrange, r0_full_iso, rho0_full_iso),'--',
-         color='tab:blue',label='Isothermal fit')
-    plot(xrange, fit_pseudo_isothermal_model(xrange, r0_pse_iso, rho0_pse_iso, ns0_pse_iso),'--',
-         color='tab:red',label='Pseudo-Isothermal fit')
-
-    plt.plot([r0_full_iso], [rho0_full_iso], 'o', color='tab:blue')
-    plt.plot([r0_pse_iso], [rho0_pse_iso], 'v', color='tab:red')
-
-    plt.plot([r0_full_iso], [fit_isothermal_model(r0_full_iso, r0_full_iso, rho0_full_iso)], '*', color='tab:blue')
-    plt.plot([r0_pse_iso], [fit_pseudo_isothermal_model(r0_pse_iso, r0_pse_iso, rho0_pse_iso, ns0_pse_iso)], '>', color='tab:red')
-
-    xscale('log')
-    xlabel(r'r [kpc]')
-    ylabel(r'$\log_{10}\rho$ [M$_{\odot}$/kpc$^{3}$]')
-    # axis([0, 50, 5, 10])
-    ax.tick_params(direction='in', axis='both', which='both', pad=4.5)
-    plt.legend(loc='lower left')
-    plt.savefig(f"{sim_info.output_path}/Test_fit/halo_%i_"%halo_index + sim_info.simulation_name + ".png", dpi=200)
-    plt.close()
-
-    return rho0_full_iso, r0_full_iso, ns0_full_iso, rho0_pse_iso, r0_pse_iso, ns0_pse_iso, v0, sigma0
+    return sol_iso, sol_pse
 
 
-def bin_volumes(radial_bins):
-    """Returns the volumes of the bins. """
+def fit_density(halo_mask, output_path, input_file):
 
-    single_vol = lambda x: (4.0 / 3.0) * np.pi * x ** 3
-    outer = single_vol(radial_bins[1:])
-    inner = single_vol(radial_bins[:-1])
-    return outer - inner
+    num_sample = len(halo_mask)
+    n0_pse = np.zeros(num_sample)
+    r0_pse = np.zeros(num_sample)
+    rho0_pse = np.zeros(num_sample)
+    r0_iso = np.zeros(num_sample)
+    rho0_iso = np.zeros(num_sample)
 
+    filename = f"{output_path}/f{input_file}.hdf5"
+    with h5py.File(filename, "r") as file:
+        radial_bins = file["Profile_evolution/Density_radial_bins"][:]
+        Density = file["Profile_evolution/Density_snapshot_0036"][:][:]
 
-def bin_centers(radial_bins):
-    """Returns the centers of the bins. """
+    for j in range(num_sample):
+        print('halo ',j,'out of ',num_sample)
+        Density_halo_j = Density[:,halo_mask[j].astype('int')]
+        popt_iso, popt_pse = fit_profile(radial_bins, Density_halo_j)
 
-    outer = radial_bins[1:]
-    inner = radial_bins[:-1]
-    return 0.5 * (outer + inner)
+        n0_pse[j] = popt_pse[2]
+        r0_pse[j] = popt_pse[0]
+        rho0_pse[j] = popt_pse[1]
+        r0_iso[j] = popt_iso[0]
+        rho0_iso[j] = popt_iso[1]
 
-
-def calculate_profiles(mass, pos, vel, sigma, radial_bins):
-
-    # Radial coordinates [kpc units]
-    r = np.sqrt(np.sum(pos ** 2, axis=1))
-
-    SumMasses, _, _ = stat.binned_statistic(x=r, values=mass, statistic="sum", bins=radial_bins, )
-    density = (SumMasses / bin_volumes(radial_bins))  # Msun/kpc^3
-
-    std_vel_x, _, _ = stat.binned_statistic(x=r, values=vel[:, 0], statistic="std", bins=radial_bins, )
-    std_vel_y, _, _ = stat.binned_statistic(x=r, values=vel[:, 1], statistic="std", bins=radial_bins, )
-    std_vel_z, _, _ = stat.binned_statistic(x=r, values=vel[:, 2], statistic="std", bins=radial_bins, )
-    velocity = np.sqrt(std_vel_x ** 2 + std_vel_y ** 2 + std_vel_z ** 2) / np.sqrt(3.)
-    velocity[np.where(np.isnan(velocity))[0]] = 0
-
-    sigma_profile, _, _ = stat.binned_statistic(x=r, values=sigma, statistic="median", bins=radial_bins, )
-
-    return density, velocity, sigma_profile
-
-
-def calculate_profile_params(sim_info, log10_min_mass, log10_max_mass):
-
-    # Define radial bins [log scale, kpc units]
-    radial_bins = np.arange(-0.3, 3, 0.1)
-    radial_bins = 10 ** radial_bins
-    centers = bin_centers(radial_bins)  # kpc
-
-    sample = np.where(
-        (sim_info.halo_data.log10_halo_mass >= log10_min_mass) &
-        (sim_info.halo_data.log10_halo_mass <= log10_max_mass))[0]
-
-    log10_M200 = sim_info.halo_data.log10_halo_mass[sample]
-    type = sim_info.halo_data.structure_type[sample]
-
-    num_halos = len(sample)
-    profile_params = make_profile_params(log10_M200)
-
-    for i in tqdm(range(num_halos)):
-
-        halo_indx = sim_info.halo_data.halo_index[sample[i]]
-        part_data = particle_data.load_particle_data(sim_info, halo_indx, sample[i])
-
-        density, velocity, sigma = calculate_profiles(part_data.masses.value,
-                                               part_data.coordinates.value,
-                                               part_data.velocities.value,
-                                               part_data.cross_section,
-                                               radial_bins)
-
-
-        rho0_fi, r0_fi, n0_fi, \
-        rho0_ps, r0_ps, n0_ps, v0, sigma0 = fit_profile(centers, density, velocity, sigma, halo_indx, sim_info)
-
-        profile_params.append_data(rho0_fi, r0_fi, n0_fi, rho0_ps, r0_ps, n0_ps, v0, sigma0)
-
-    # Output data
-    filename = f"{sim_info.output_path}/Test_fit/Profile_params_" + sim_info.simulation_name + ".hdf5"
-    data_file = h5py.File(filename, 'w')
-    f = data_file.create_group('Data')
-    MH = f.create_dataset('ID', data=sim_info.halo_data.halo_index[sample])
-    MH = f.create_dataset('StructureType', data=type)
-    MH = f.create_dataset('M200c', data=log10_M200)
-    MH = f.create_dataset('r0_isothermal_fit', data=profile_params.r0_isothermal)
-    MH = f.create_dataset('rho0_isothermal_fit', data=profile_params.rho0_isothermal)
-    MH = f.create_dataset('r0_pseudo_isothermal_fit', data=profile_params.r0_pse_isothermal)
-    MH = f.create_dataset('rho0_pseudo_isothermal_fit', data=profile_params.rho0_pse_isothermal)
-    MH = f.create_dataset('n0_pseudo_isothermal_fit', data=profile_params.n0_pse_isothermal)
-    MH = f.create_dataset('velocity_dispersion_0', data=profile_params.v0)
-    MH = f.create_dataset('cross_section_0', data=profile_params.sigma0)
-    data_file.close()
-
-    return
+    return n0_pse, r0_pse, rho0_pse, r0_iso, rho0_iso
