@@ -21,10 +21,10 @@ def make_tree_data(sim_info):
     load_internal_evolution(sim_info, progenitor_index, output_file)
 
 
-def add_tree_data(sim_info):
+def add_tree_data(sim_info, input_file):
 
     # Output data
-    output_file = f"{sim_info.output_path}/Tree_data_" + sim_info.simulation_name + "_satellites_95_10.hdf5"
+    output_file = f"{sim_info.output_path}/f{input_file}.hdf5"
     with h5py.File(output_file, "r") as file:
         progenitor_index = file["Assembly_history/Progenitor_index"][:][:]
 

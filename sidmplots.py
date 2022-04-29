@@ -63,6 +63,7 @@ def main(config: ArgumentParser):
 
         make_tree_data(sim_info)
 
+
         # profile_data_centrals_9 = compute_density_profiles(
         #     sim_info=sim_info,
         #     log10_min_mass=8.8,

@@ -184,7 +184,7 @@ class ArgumentWithInputFiles(object):
             "--input-file-cdm",
             help="Input file to read data.",
             type=str,
-            required=True,
+            required=False,
         )
 
         args = parser.parse_args()
