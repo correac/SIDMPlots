@@ -21,11 +21,11 @@ if __name__ == "__main__":
     # Gather data
     halo_mask, halo_ratio, halo_mass = calculate_ratio(output, input_file, input_file_CDM)
 
-    select = np.where((halo_mass >= 9.0) & (halo_mass <= 9.2))[0]
+    select = np.where((halo_mass > 10.0) & (halo_mass <= 12.0))[0]
 
     n0_pse, r0_pse, rho0_pse, r0_iso, rho0_iso = fit_density(halo_mask[select], output, input_file)
 
-    output_file = "DensityFitParams_" + sim_name + "_91_92.hdf5"
+    output_file = "DensityFitParams_" + sim_name + "_10_12.hdf5"
     data_file = h5py.File(output_file, 'a')
     f = data_file.create_group('HaloData')
     f.create_dataset('HaloID', data=halo_mask[select])
