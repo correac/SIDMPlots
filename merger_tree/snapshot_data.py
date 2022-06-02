@@ -138,6 +138,8 @@ class snapshot_info:
         # self.number_of_haloes = mask.sum()
         self.number_of_haloes = len(mask)
 
+        mask = mask.astype('int')
+
         # Structure type
         self.structure_type = catalogue.structure_type.structuretype[mask]
 

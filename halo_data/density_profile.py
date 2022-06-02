@@ -155,6 +155,8 @@ def calculate_halo_data(sim_info, halo_index, density_radial_bins, velocity_radi
 
     centered_radial_bins = bin_centers(density_radial_bins)  # kpc
     density = np.zeros((len(centered_radial_bins), num_haloes))
+    veldisp = np.zeros((len(centered_radial_bins), num_haloes))
+    sigmaprofile = np.zeros((len(centered_radial_bins), num_haloes))
 
     centered_velocity_radial_bins = bin_centers(velocity_radial_bins)  # kpc
     velocity = np.zeros((len(centered_velocity_radial_bins), num_haloes))
@@ -167,7 +169,7 @@ def calculate_halo_data(sim_info, halo_index, density_radial_bins, velocity_radi
 
         if len(part_data.bound_particles_only) < 10: continue
 
-        density[:,i], _, _ = calculate_profiles(part_data.masses.value[part_data.bound_particles_only],
+        density[:,i], veldisp[:,i], sigmaprofile[:,i] = calculate_profiles(part_data.masses.value[part_data.bound_particles_only],
                                             part_data.coordinates.value[part_data.bound_particles_only, :],
                                             part_data.velocities.value[part_data.bound_particles_only],
                                             part_data.cross_section[part_data.bound_particles_only],
@@ -177,7 +179,7 @@ def calculate_halo_data(sim_info, halo_index, density_radial_bins, velocity_radi
                                    part_data.coordinates.value[part_data.bound_particles_only, :],
                                    velocity_radial_bins)
 
-    return density, velocity
+    return density, velocity, veldisp, sigmaprofile
 
 
 def calculate_velocity_dispersion(sim_info, halo_index, density_radial_bins):
