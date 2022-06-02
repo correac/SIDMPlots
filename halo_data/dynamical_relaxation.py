@@ -12,3 +12,5 @@ def calculate_relaxation_criteria(sim_info, halo_index):
     relaxation = r / (0.07 * sim_info.virial_radius)
 
     return relaxation
+
+

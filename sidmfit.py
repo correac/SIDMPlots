@@ -19,7 +19,7 @@ if __name__ == "__main__":
     input_file_CDM = config.input_file_list_CDM
 
     # Gather data
-    halo_mask, halo_ratio, halo_mass = calculate_ratio(output, input_file, input_file_CDM)
+    halo_mask, halo_ratio, halo_mass, halo_type = calculate_ratio(output, input_file, input_file_CDM)
 
     select = np.where((halo_mass > 10.0) & (halo_mass <= 12.0))[0]
 
@@ -31,6 +31,7 @@ if __name__ == "__main__":
     f.create_dataset('HaloID', data=halo_mask[select])
     f.create_dataset('VfidRatio', data=halo_ratio[select])
     f.create_dataset('M200c', data=halo_mass[select])
+    f.create_dataset('StructureType', data=halo_type[select])
 
     f = data_file.create_group('IsothermalProfile')
     f.create_dataset('r0', data=r0_iso)

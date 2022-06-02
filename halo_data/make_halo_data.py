@@ -1,0 +1,78 @@
+import numpy as np
+import h5py
+from .density_profile import calculate_halo_data
+
+def bin_centers(radial_bins):
+    """Returns the centers of the bins. """
+
+    outer = radial_bins[1:]
+    inner = radial_bins[:-1]
+    return 0.5 * (outer + inner)
+
+def calculate_relaxation(sim_info, sample):
+
+    MoP = np.array([sim_info.halo_data.xminpot[sample],
+                    sim_info.halo_data.yminpot[sample],
+                    sim_info.halo_data.zminpot[sample]])
+    CoM = np.array([sim_info.halo_data.xcom[sample],
+                    sim_info.halo_data.ycom[sample],
+                    sim_info.halo_data.zcom[sample]])
+    pos = MoP - CoM
+    r = np.sqrt( pos[0,:]**2 + pos[1,:]**2 + pos[2,:]**2 )
+
+    relaxation = r / (0.07 * sim_info.halo_data.virial_radius[sample])
+
+    return relaxation
+
+def load_profiles(sim_info, halo_index, output_file):
+
+    # Related to internal structure evolution
+    radial_bins = np.arange(-1, 3, 0.1)
+    radial_bins = 10 ** radial_bins
+    centered_radial_bins = bin_centers(radial_bins)  # kpc
+
+    vel_radial_bins = np.arange(0.25, 100, 0.25)
+    centered_velocity_radial_bins = bin_centers(vel_radial_bins)  # kpc
+
+    density, velocity, veldisp, sigmaprofile = \
+        calculate_halo_data(sim_info, halo_index, radial_bins, vel_radial_bins)
+
+    data_file = h5py.File(output_file, 'a')
+    f = data_file.create_group('Profile_data')
+    f.create_dataset('Density_profile', data=density)
+    f.create_dataset('Circular_Velocity', data=velocity)
+    f.create_dataset('Velocity_dispersion', data=veldisp)
+    f.create_dataset('Sigma_profile', data=sigmaprofile)
+    f.create_dataset('Density_radial_bins', data=centered_radial_bins)
+    f.create_dataset('Velocity_radial_bins', data=centered_velocity_radial_bins)
+    data_file.close()
+    return
+
+def make_halo_data(sim_info):
+
+    sample = np.where(
+        (sim_info.halo_data.log10_halo_mass >= 9) &
+        (sim_info.halo_data.log10_halo_mass < 12))[0]
+
+    halo_index = sim_info.halo_data.halo_index[sample]
+    M200c = sim_info.halo_data.log10_halo_mass[sample]
+    c200c = sim_info.halo_data.concentration[sample]
+    R200c = sim_info.halo_data.virial_radius[sample]
+    structure_type = sim_info.halo_data.structure_type[sample]
+    relaxation = calculate_relaxation(sim_info, sample)
+    Vmax = sim_info.halo_data.vmax[sample]
+
+    # Output data
+    output_file = f"{sim_info.output_path}/Halo_data_" + sim_info.simulation_name + ".hdf5"
+    data_file = h5py.File(output_file, 'w')
+    f = data_file.create_group('Halo_data')
+    f.create_dataset('ID', data=halo_index)
+    f.create_dataset('StructureType', data=structure_type)
+    f.create_dataset('M200c', data=M200c)
+    f.create_dataset('c200c', data=c200c)
+    f.create_dataset('R200c', data=R200c)
+    f.create_dataset('Vmax', data=Vmax)
+    f.create_dataset('Dynamical_relaxation', data=relaxation)
+    data_file.close()
+
+    load_profiles(sim_info, halo_index, output_file)
