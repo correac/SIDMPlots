@@ -24,7 +24,7 @@ source $HOME/sidmplots_env/bin/activate
 #-o $HOME/SIDMPlots/Simulation_data/ \
 #-f Tree_data_Satellites_DML025N752SigmaVelDep20Anisotropic
 
-python3 $HOME/SIDMPlots/sidmplots.py \
+python3 $HOME/SIDMPlots/sidmdata.py \
 -d /projects/0/einf180/Tango_sims/L025N752/DMONLY/SigmaVelDep20Anisotropic \
 -s snapshot_0036.hdf5 \
 -c subhalo_0036.properties \
