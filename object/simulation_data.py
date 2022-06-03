@@ -17,6 +17,7 @@ class SimInfo:
         catalogue: str,
         name: Union[str, None],
         output: str,
+        simtype: str,
     ):
         """
         Parameters
@@ -36,6 +37,7 @@ class SimInfo:
         self.snapshot_name = snapshot
         self.catalogue_name = catalogue
         self.output_path = output
+        self.simulation_type = simtype
 
         # Find the group and particle catalogue files
         self.__find_groups_and_particles_catalogues()
@@ -110,6 +112,10 @@ class SimInfo:
 
         self.num_dm_particles = self.snapshot.metadata.n_dark_matter
 
+        if self.simulation_type == 'Hydro':
+            self.num_star_particles = self.snapshot.metadata.n_stars
+            self.num_gas_particles = self.snapshot.metadata.n_gas
+
         snapshot_file = f"{self.directory}/{self.snapshot_name}"
 
         self.cross_section = 0.
@@ -122,7 +128,8 @@ class SimInfo:
         # Object containing halo properties (from halo catalogue)
         self.halo_data = HaloCatalogue(
            path_to_catalogue=f"{self.directory}/{self.catalogue_name}",
-           dm_particle_mass=self.dm_particle_mass
+           dm_particle_mass=self.dm_particle_mass,
+           simulation_type=self.simulation_type
         )
         catalogue_base_name = "".join([s for s in self.catalogue_name if not s.isdigit() and s != "_"])
         catalogue_base_name = os.path.splitext(catalogue_base_name)[0]

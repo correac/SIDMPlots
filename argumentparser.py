@@ -15,6 +15,8 @@ class ArgumentParser(object):
     directory_list: List[str]
     # List of representative names for the snapshots; may be a list of Nones
     name_list: List[Optional[str]]
+    # List of simulation type; they can be DMONLY or Hydro
+    sim_type: List[Optional[str]]
     # Directory to output the figure to
     output_directory: str
     # Number of inputs to the script.
@@ -73,6 +75,15 @@ class ArgumentParser(object):
             required=True,
         )
 
+        parser.add_argument(
+            "-t",
+            "--run-type",
+            help="Types of simulations, DMONLY or Hydro?",
+            type=str,
+            required=False,
+            nargs="*",
+        )
+
         args = parser.parse_args()
 
         self.snapshot_list = args.snapshots
@@ -86,6 +97,12 @@ class ArgumentParser(object):
 
         self.output_directory = args.output_directory
         self.number_of_inputs = len(args.snapshots)
+
+        if args.run_type is not None:
+            self.sim_type = args.run_type
+        else:
+            self.sim_type = ['DMONLY'] * len(self.directory_list)
+
 
         print("Parsed arguments:")
         print("---------------------\n")
@@ -111,6 +128,8 @@ class ArgumentWithInputFiles(object):
     directory_list: str
     # List of representative names for the snapshots; may be a list of Nones
     name_list: str
+    # List of type for the simulations; may be a list of Nones
+    sim_type_list: str
     # Directory to output the figure to
     output_directory: str
     # List of file inputs that are to be processed.
@@ -187,6 +206,15 @@ class ArgumentWithInputFiles(object):
             required=False,
         )
 
+        parser.add_argument(
+            "-n",
+            "--run-types",
+            help="Types of the runs.",
+            type=str,
+            required=False,
+            nargs="*",
+        )
+
         args = parser.parse_args()
 
         self.snapshot_list = args.snapshots
@@ -199,6 +227,11 @@ class ArgumentWithInputFiles(object):
             self.name_list = args.run_names
         else:
             self.name_list = [None] * len(self.directory_list)
+
+        if args.run_types is not None:
+            self.sim_type_list = args.run_types
+        else:
+            self.sim_type_list = ['DMONLY'] * len(self.directory_list)
 
         self.output_directory = args.output_directory
 

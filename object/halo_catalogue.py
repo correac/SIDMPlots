@@ -1,6 +1,6 @@
 import numpy as np
 import unyt
-from velociraptor import load
+import velociraptor
 
 
 class HaloCatalogue:
@@ -9,7 +9,7 @@ class HaloCatalogue:
     """
 
     def __init__(
-        self, path_to_catalogue: str, dm_particle_mass: float,
+        self, path_to_catalogue: str, dm_particle_mass: float, simulation_type: str,
     ):
         """
         Parameters
@@ -24,7 +24,7 @@ class HaloCatalogue:
         self.path_to_catalogue = path_to_catalogue
 
         # Load catalogue using velociraptor python library
-        catalogue = load(self.path_to_catalogue)
+        catalogue = velociraptor.load(self.path_to_catalogue)
 
         # Selecting haloes that contain at less 1000 DM particles
         # mask = catalogue.masses.mass_200crit.to("Msun").value >= unyt.unyt_quantity(1e3 * dm_particle_mass, "Msun")
@@ -66,3 +66,34 @@ class HaloCatalogue:
         self.xcom = catalogue.positions.xc.to("Mpc").value[mask]
         self.ycom = catalogue.positions.yc.to("Mpc").value[mask]
         self.zcom = catalogue.positions.zc.to("Mpc").value[mask]
+
+        if simulation_type == 'Hydro':
+
+            # Log10 stellar mass in units of Msun
+            self.log10_stellar_mass = np.log10(
+                catalogue.apertures.mass_star_30_kpc.to("Msun").value[mask]
+            )
+
+            # Log10 gas mass in units of Msun
+            self.log10_gas_mass = np.log10(
+                catalogue.apertures.mass_gas_30_kpc.to("Msun").value[mask]
+            )
+
+            self.galaxy_size = catalogue.apertures.rhalfmass_star_30_kpc.to("kpc").value[mask]
+
+            # Half mass radius in units of kpc (stars)
+            self.half_mass_radius_star = catalogue.radii.r_halfmass_star.to("kpc").value[mask]
+
+            # Half mass radius in units of kpc (gas)
+            self.half_mass_radius_gas = catalogue.radii.r_halfmass_gas.to("kpc").value[mask]
+
+            # Star formation rate in units of Msun/yr
+            self.sfr = catalogue.apertures.sfr_gas_30_kpc.value[mask] * 10227144.8879616 / 1e9
+
+            # Metallicity of star-forming gas
+            self.metallicity_gas_sfr = catalogue.apertures.zmet_gas_sf_30_kpc.value[mask]
+
+            # Metallicity of all gas
+            self.metallicity_gas = catalogue.apertures.zmet_gas_30_kpc.value[mask]
+
+            self.metallicity_stars = catalogue.derived_quantities.star_metallicity_in_solar_30_kpc
