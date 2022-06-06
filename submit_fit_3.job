@@ -18,7 +18,7 @@ source $HOME/sidmfits_env/bin/activate
 
 python3 $HOME/SIDMPlots/sidmfit.py \
 -n DML025N752SigmaConstant10 \
--o $HOME/SIDMPlots/Simulation_data/ \
--f Tree_data_Satellites_DML025N752SigmaConstant10 \
--fc Tree_data_Satellites_DML025N752SigmaConstant00
+-o $HOME/SIDMPlots/output_data/ \
+-f Halo_data_DML025N752SigmaConstant10 \
+-fc Halo_data_DML025N752SigmaConstant00
 

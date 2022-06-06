@@ -3,7 +3,6 @@ Description here
 """
 from argumentparser import ArgumentWithInputFiles
 import h5py
-import numpy as np
 from fit_profile.fit_profile import fit_density
 from fit_profile.ratio_analysis import calculate_ratio
 
@@ -21,17 +20,15 @@ if __name__ == "__main__":
     # Gather data
     halo_mask, halo_ratio, halo_mass, halo_type = calculate_ratio(output, input_file, input_file_CDM)
 
-    select = np.where((halo_mass > 10.0) & (halo_mass <= 12.0))[0]
+    n0_pse, r0_pse, rho0_pse, r0_iso, rho0_iso = fit_density(halo_mask, output, input_file)
 
-    n0_pse, r0_pse, rho0_pse, r0_iso, rho0_iso = fit_density(halo_mask[select], output, input_file)
-
-    output_file = "DensityFitParams_" + sim_name + "_10_12.hdf5"
+    output_file = "DensityFitParams_" + sim_name + ".hdf5"
     data_file = h5py.File(output_file, 'a')
     f = data_file.create_group('HaloData')
-    f.create_dataset('HaloID', data=halo_mask[select])
-    f.create_dataset('VfidRatio', data=halo_ratio[select])
-    f.create_dataset('M200c', data=halo_mass[select])
-    f.create_dataset('StructureType', data=halo_type[select])
+    f.create_dataset('HaloID', data=halo_mask)
+    f.create_dataset('VfidRatio', data=halo_ratio)
+    f.create_dataset('M200c', data=halo_mass)
+    f.create_dataset('StructureType', data=halo_type)
 
     f = data_file.create_group('IsothermalProfile')
     f.create_dataset('r0', data=r0_iso)

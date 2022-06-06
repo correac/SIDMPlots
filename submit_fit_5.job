@@ -18,9 +18,9 @@ source $HOME/sidmfits_env/bin/activate
 
 python3 $HOME/SIDMPlots/sidmfit.py \
 -n DML025N752SigmaVelDep60Anisotropic \
--o $HOME/SIDMPlots/Simulation_data/ \
--f Tree_data_Satellites_DML025N752SigmaVelDep60Anisotropic \
--fc Tree_data_Satellites_DML025N752SigmaConstant00
+-o $HOME/SIDMPlots/output_data/ \
+-f Halo_data_DML025N752SigmaVelDep60Anisotropic \
+-fc Halo_data_DML025N752SigmaConstant00
 
 #python3 $HOME/SIDMPlots/addsidmdata.py \
 #-d /projects/0/einf180/Tango_sims/L025N752/DMONLY/SigmaVelDep60Anisotropic  \
