@@ -113,8 +113,13 @@ def calculate_profiles_all_part_type(
     r_gas = np.sqrt(np.sum(gas_pos ** 2, axis=1))
     r_dm = np.sqrt(np.sum(dm_pos ** 2, axis=1))
 
-    r = np.array([r_stars, r_gas, r_dm])
-    mass = np.array([star_mass, gas_mass, dm_mass])
+    r = r_stars.copy()
+    r = np.append(r, r_gas)
+    r = np.append(r, r_dm)
+
+    mass = star_mass.copy()
+    mass = np.append(mass, gas_mass)
+    mass = np.append(mass, dm_mass)
 
     SumMasses, _, _ = stat.binned_statistic(x=r, values=mass, statistic="sum", bins=density_bins, )
     density = (SumMasses / bin_volumes(density_bins))  # Msun/kpc^3

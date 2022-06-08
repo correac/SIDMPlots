@@ -85,12 +85,12 @@ class HaloCatalogue:
             self.half_mass_radius_gas = catalogue.radii.r_halfmass_gas.to("kpc").value[mask]
 
             # Star formation rate in units of Msun/yr
-            self.sfr = catalogue.apertures.sfr_gas_30_kpc.value[mask] * 10227144.8879616 / 1e9
+            self.sfr = catalogue.apertures.sfr_gas_30_kpc.to("Msun/yr").value[mask]
 
             # Metallicity of star-forming gas
-            self.metallicity_gas_sfr = catalogue.apertures.zmet_gas_sf_30_kpc.value[mask]
+            self.metallicity_gas_sfr = catalogue.apertures.zmet_gas_sf_30_kpc.to("dimensionless").value[mask]
 
             # Metallicity of all gas
-            self.metallicity_gas = catalogue.apertures.zmet_gas_30_kpc.value[mask]
+            self.metallicity_gas = catalogue.apertures.zmet_gas_30_kpc.to("dimensionless").value[mask]
 
-            self.metallicity_stars = catalogue.derived_quantities.star_metallicity_in_solar_30_kpc
+            self.metallicity_stars = catalogue.apertures.zmet_star_30_kpc.to("dimensionless").value[mask]
