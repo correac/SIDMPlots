@@ -27,13 +27,11 @@ class HaloCatalogue:
         catalogue = velociraptor.load(self.path_to_catalogue)
 
         # Selecting haloes that contain at less 1000 DM particles
-        # mask = catalogue.masses.mass_200crit.to("Msun").value >= unyt.unyt_quantity(1e3 * dm_particle_mass, "Msun")
         mask = np.where(
             catalogue.masses.mass_200crit.to("Msun").value >= unyt.unyt_quantity(1e3 * dm_particle_mass, "Msun")
         )[0]
 
         # Compute the number of haloes following the selection mask
-        # self.number_of_haloes = mask.sum()
         self.number_of_haloes = len(mask)
 
         # Structure type
@@ -50,7 +48,6 @@ class HaloCatalogue:
         self.scale_radius = self.virial_radius / self.concentration
 
         # Ids of haloes satisfying the selection criterion
-        # self.halo_index = np.array([i for i in range(len(mask)) if mask[i] == True])
         self.halo_index = mask.copy()
 
         self.xminpot = catalogue.positions.xcminpot.to("Mpc").value[mask]

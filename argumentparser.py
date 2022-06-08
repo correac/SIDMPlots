@@ -207,7 +207,7 @@ class ArgumentWithInputFiles(object):
         )
 
         parser.add_argument(
-            "-n",
+            "-t",
             "--run-types",
             help="Types of the runs.",
             type=str,
@@ -231,7 +231,7 @@ class ArgumentWithInputFiles(object):
         if args.run_types is not None:
             self.sim_type_list = args.run_types
         else:
-            self.sim_type_list = ['DMONLY'] * len(self.directory_list)
+            self.sim_type_list = ['DMONLY']
 
         self.output_directory = args.output_directory
 

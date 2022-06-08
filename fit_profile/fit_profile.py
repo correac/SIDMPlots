@@ -242,8 +242,8 @@ def fit_density(halo_mask, output_path, input_file):
 
     filename = output_path+"/"+input_file+".hdf5"
     with h5py.File(filename, "r") as file:
-        radial_bins = file["Profile_evolution/Density_radial_bins"][:]
-        Density = file["Profile_evolution/Density_snapshot_0036"][:][:]
+        radial_bins = file["Profile_data/Density_radial_bins"][:]
+        Density = file["Profile_data/Density_profile"][:][:]
 
     for j in range(num_sample):
         print('halo ',j,'out of ',num_sample)

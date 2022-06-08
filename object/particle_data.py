@@ -175,7 +175,7 @@ class load_particle_data:
             self.gas = load_gas_particle_data(sim_info, CoP, CoV, size)
 
 
-    def select_bound_particles(self, sim_info, halo_index, ids) -> Tuple[numpy.ndarray]:
+    def select_bound_particles(self, sim_info, halo_index, ids):
         """
         Select particles that are gravitationally bound to halo
         Parameters
@@ -194,7 +194,7 @@ class load_particle_data:
         try:
             halo_end_position = group_file["Offset"][halo_index.astype('int') + 1]
         except IndexError:
-            return Tuple[numpy.array([-1])]
+            return numpy.array([-1])
 
         particle_ids_in_halo = particles_file["Particle_IDs"][halo_start_position:halo_end_position]
 

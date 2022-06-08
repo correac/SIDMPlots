@@ -18,6 +18,7 @@ source $HOME/sidmfits_env/bin/activate
 
 python3 $HOME/SIDMPlots/sidmfit.py \
 -n DML025N752SigmaVelDep60Anisotropic \
+-t DMONLY \
 -o $HOME/SIDMPlots/output_data/ \
 -f Halo_data_DML025N752SigmaVelDep60Anisotropic \
 -fc Halo_data_DML025N752SigmaConstant00
