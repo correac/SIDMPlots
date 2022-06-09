@@ -23,7 +23,7 @@ if __name__ == "__main__":
     n0_pse, r0_pse, rho0_pse, r0_iso, rho0_iso = fit_density(halo_mask, output, input_file)
 
     output_file = "DensityFitParams_" + sim_name + ".hdf5"
-    data_file = h5py.File(output_file, 'a')
+    data_file = h5py.File(output_file, 'w')
     f = data_file.create_group('HaloData')
     f.create_dataset('HaloID', data=halo_mask)
     f.create_dataset('VfidRatio', data=halo_ratio)

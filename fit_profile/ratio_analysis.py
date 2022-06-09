@@ -21,7 +21,6 @@ def calculate_ratio(output_path, input_file, input_file_CDM):
     filename = output_path+"/"+input_file+".hdf5"
     with h5py.File(filename, "r") as file:
         M200c = file["Halo_data/M200c"][:]
-        M200c = np.log10(M200c)
         Structure_type = file["Halo_data/StructureType"][:]
         Velocity = file["Profile_data/Circular_Velocity"][:][:]
         radial_bins = file["Profile_data/Velocity_radial_bins"][:]
@@ -29,7 +28,6 @@ def calculate_ratio(output_path, input_file, input_file_CDM):
     filename = output_path+"/"+input_file_CDM+".hdf5"
     with h5py.File(filename, "r") as file:
         CDM_M200c = file["Halo_data/M200c"][:]
-        CDM_M200c = np.log10(CDM_M200c)
         CDM_Structure_type = file["Halo_data/StructureType"][:]
         CDM_Velocity = file["Profile_data/Circular_Velocity"][:][:]
 
