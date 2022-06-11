@@ -31,7 +31,7 @@ def calculate_ratio(output_path, input_file, input_file_CDM):
         CDM_Structure_type = file["Halo_data/StructureType"][:]
         CDM_Velocity = file["Profile_data/Circular_Velocity"][:][:]
 
-    mass_bins = np.arange(9, 12.1, 0.1)
+    mass_bins = np.arange(10, 13, 0.1)
     num_mass_bins = len(mass_bins)-1
 
     halo_mass = []
