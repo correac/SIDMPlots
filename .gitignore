@@ -23,3 +23,4 @@ run.sh
 output_data
 output-*
 error-*
+*.job

@@ -43,6 +43,7 @@ def main(config: ArgumentParser):
         catalogue = config.catalogue_list[sim]
         sim_name = config.name_list[sim]
         output = config.output_directory
+        sim_type = config.sim_type[sim]
 
         # Load all data and save it in SimInfo class
         sim_info = simulation_data.SimInfo(
@@ -51,6 +52,7 @@ def main(config: ArgumentParser):
             catalogue=catalogue,
             name=sim_name,
             output=output,
+            simtype=sim_type,
         )
 
         output_name_list.append(sim_info.simulation_name)

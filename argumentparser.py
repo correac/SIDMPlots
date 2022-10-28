@@ -231,7 +231,7 @@ class ArgumentWithInputFiles(object):
         if args.run_types is not None:
             self.sim_type_list = args.run_types
         else:
-            self.sim_type_list = ['DMONLY']
+            self.sim_type_list = [None] * len(self.directory_list)
 
         self.output_directory = args.output_directory
 

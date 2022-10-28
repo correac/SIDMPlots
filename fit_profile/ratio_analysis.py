@@ -15,21 +15,25 @@ def calculate_vcirc_at_fiducial_radius(radius, velocity, M200c):
     return v_fid
 
 
-def calculate_ratio(output_path, input_file, input_file_CDM):
+def calculate_ratio(output_path, input_file, input_file_CDM, sim_type):
+
+    field = 'Circular_Velocity'
+    if sim_type == "DMONLY": field = 'Dark_matter_Circular_Velocity'
+
 
     # Let's read some data :
     filename = output_path+"/"+input_file+".hdf5"
     with h5py.File(filename, "r") as file:
         M200c = file["Halo_data/M200c"][:]
         Structure_type = file["Halo_data/StructureType"][:]
-        Velocity = file["Profile_data/Circular_Velocity"][:][:]
+        Velocity = file["Profile_data/"+field][:][:]
         radial_bins = file["Profile_data/Velocity_radial_bins"][:]
 
     filename = output_path+"/"+input_file_CDM+".hdf5"
     with h5py.File(filename, "r") as file:
         CDM_M200c = file["Halo_data/M200c"][:]
         CDM_Structure_type = file["Halo_data/StructureType"][:]
-        CDM_Velocity = file["Profile_data/Circular_Velocity"][:][:]
+        CDM_Velocity = file["Profile_data/"+field][:][:]
 
     mass_bins = np.arange(10, 13, 0.1)
     num_mass_bins = len(mass_bins)-1

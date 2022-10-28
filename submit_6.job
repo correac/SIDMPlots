@@ -23,10 +23,17 @@ source $HOME/sidmplots_env/bin/activate
 #-n DML025N752SigmaVelDep20 \
 #-o $HOME/SIDMPlots/output_data/
 
-
-python3 $HOME/SIDMPlots/sidmdata.py \
+python3 $HOME/SIDMPlots/sidmplots.py \
 -d /projects/0/einf180/Tango_sims/L025N752/DMONLY/SigmaVelDep100Anisotropic \
 -s snapshot_0036.hdf5 \
 -c subhalo_0036.properties \
 -n DML025N752SigmaVelDep100Anisotropic \
+-t DMONLY \
 -o $HOME/SIDMPlots/output_data/
+
+#python3 $HOME/SIDMPlots/sidmdata.py \
+#-d /projects/0/einf180/Tango_sims/L025N752/DMONLY/SigmaVelDep100Anisotropic \
+#-s snapshot_0036.hdf5 \
+#-c subhalo_0036.properties \
+#-n DML025N752SigmaVelDep100Anisotropic \
+#-o $HOME/SIDMPlots/output_data/

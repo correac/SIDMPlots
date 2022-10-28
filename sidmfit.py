@@ -16,9 +16,11 @@ if __name__ == "__main__":
     output = config.output_directory
     input_file = config.input_file_list
     input_file_CDM = config.input_file_list_CDM
+    sim_type = config.sim_type_list[0]
+    print(sim_type)
 
     # Gather data
-    halo_mask, halo_ratio, halo_mass, halo_type = calculate_ratio(output, input_file, input_file_CDM)
+    halo_mask, halo_ratio, halo_mass, halo_type = calculate_ratio(output, input_file, input_file_CDM, sim_type)
 
     n0_pse, r0_pse, rho0_pse, r0_iso, rho0_iso = fit_density(halo_mask, output, input_file)
 
