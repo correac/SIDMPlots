@@ -1,6 +1,7 @@
 import numpy as np
 import h5py
 from .density_profile import calculate_halo_data, calculate_halo_data_hydro
+from .morphology import calculate_morphology
 
 def bin_centers(radial_bins):
     """Returns the centers of the bins. """
@@ -76,6 +77,9 @@ def make_halo_data(sim_info):
     structure_type = sim_info.halo_data.structure_type[sample]
     relaxation = calculate_relaxation(sim_info, sample)
     Vmax = sim_info.halo_data.vmax[sample]
+
+    # Morphology/shape estimations
+    a_axis, b_axis, c_axis, radius, kappa = calculate_morphology(sim_info, sample)
 
     # Output data
     output_file = f"{sim_info.output_path}/Halo_data_" + sim_info.simulation_name + ".hdf5"
