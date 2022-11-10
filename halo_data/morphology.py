@@ -207,7 +207,7 @@ def calculate_morphology(sim_info, sample):
 
             select = np.where(r < radial_bins[j])[0]
 
-            a_axis[j,i], b_axis[j,i], c_axis[j,i] = AxialRatios(r[select], mass[select])
+            a_axis[j,i], b_axis[j,i], c_axis[j,i] = AxialRatios(pos[select, :], mass[select])
 
         if sim_info.simulation_type == 'Hydro':
 
