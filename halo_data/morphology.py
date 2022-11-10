@@ -75,8 +75,8 @@ def calculate_kappa_co(pos, vel, mass):
     #)
 
     # Compute specific angular momentum
-    # sa_momentum = momentum / Mstar
-    # sa_momentum = np.linalg.norm(sa_momentum)
+    sa_momentum = momentum / Mstar
+    sa_momentum = np.linalg.norm(sa_momentum)
 
     # Compute rotational velocities
     smomentumz = np.sum(momentum * smomentums / np.linalg.norm(momentum), axis=1)
@@ -110,7 +110,7 @@ def calculate_kappa_co(pos, vel, mass):
     #momentum_inner_5kpc /= np.linalg.norm(momentum_inner_5kpc)
 
     # Return
-    return kappa_co
+    return kappa_co, sa_momentum
 
 def bin_centers(radial_bins):
     """Returns the centers of the bins. """
@@ -182,6 +182,7 @@ def calculate_morphology(sim_info, sample):
     c_axis = np.zeros((num_bins, num_haloes))
     cross_section = np.zeros((num_bins-1, num_haloes))
     kappa = np.zeros(num_haloes)
+    ang_momentum = np.zeros(num_haloes)
 
     halo_index = sim_info.halo_data.halo_index[sample]
 
@@ -221,7 +222,7 @@ def calculate_morphology(sim_info, sample):
             vel[:, 1] -= sim_info.halo_data.vyminpot[sample[i]]
             vel[:, 2] -= sim_info.halo_data.vzminpot[sample[i]]
 
-            kappa[i] = calculate_kappa_co(pos, vel, mass)
+            kappa[i], ang_momentum[i] = calculate_kappa_co(pos, vel, mass)
 
 
-    return a_axis, b_axis, c_axis, cross_section, radial_bins, kappa
+    return a_axis, b_axis, c_axis, cross_section, radial_bins, kappa, ang_momentum

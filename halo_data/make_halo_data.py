@@ -79,7 +79,7 @@ def make_halo_data(sim_info):
     Vmax = sim_info.halo_data.vmax[sample]
 
     # Morphology/shape estimations
-    a_axis, b_axis, c_axis, radius, kappa = calculate_morphology(sim_info, sample)
+    a_axis, b_axis, c_axis, radius, kappa, Lmomentum = calculate_morphology(sim_info, sample)
 
     # Output data
     output_file = f"{sim_info.output_path}/Halo_data_" + sim_info.simulation_name + ".hdf5"
@@ -92,6 +92,11 @@ def make_halo_data(sim_info):
     f.create_dataset('R200c', data=R200c)
     f.create_dataset('Vmax', data=Vmax)
     f.create_dataset('Dynamical_relaxation', data=relaxation)
+    f.create_dataset('MajorAxis_a', data=a_axis)
+    f.create_dataset('MinorAxis_b', data=b_axis)
+    f.create_dataset('MinorAxis_c', data=c_axis)
+    f.create_dataset('Axis_radius', data=radius)
+
 
     if sim_info.simulation_type == 'Hydro':
 
@@ -106,7 +111,8 @@ def make_halo_data(sim_info):
         f.create_dataset('GalaxySize', data=GalaxySize)
         f.create_dataset('SFR', data=SFR)
         f.create_dataset('Metallicity', data=Metallicity)
-
+        f.create_dataset('kappa', data=kappa)
+        f.create_dataset('SpecificAngularMomentum', data=Lmomentum)
 
     data_file.close()
 
