@@ -66,9 +66,7 @@ def load_profiles(sim_info, halo_index, output_file):
 
 def make_halo_data(sim_info):
 
-    sample = np.where(
-        (sim_info.halo_data.log10_halo_mass >= 9) &
-        (sim_info.halo_data.log10_halo_mass < 12))[0]
+    sample = np.where(sim_info.halo_data.log10_halo_mass >= 10)[0]
 
     halo_index = sim_info.halo_data.halo_index[sample]
     M200c = sim_info.halo_data.log10_halo_mass[sample]
@@ -79,7 +77,7 @@ def make_halo_data(sim_info):
     Vmax = sim_info.halo_data.vmax[sample]
 
     # Morphology/shape estimations
-    a_axis, b_axis, c_axis, radius, kappa, Lmomentum = calculate_morphology(sim_info, sample)
+    a_axis, b_axis, c_axis, cross_section, radius, kappa, Lmomentum = calculate_morphology(sim_info, sample)
 
     # Output data
     output_file = f"{sim_info.output_path}/Halo_data_" + sim_info.simulation_name + ".hdf5"
@@ -96,7 +94,7 @@ def make_halo_data(sim_info):
     f.create_dataset('MinorAxis_b', data=b_axis)
     f.create_dataset('MinorAxis_c', data=c_axis)
     f.create_dataset('Axis_radius', data=radius)
-
+    f.create_dataset('CrossSection', data=cross_section)
 
     if sim_info.simulation_type == 'Hydro':
 

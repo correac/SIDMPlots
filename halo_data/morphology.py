@@ -33,8 +33,8 @@ def calculate_kappa_co(pos, vel, mass):
 
     # Restrict particles
     extract = distancesDATA < 30.0
-    pos = pos[:, extract]
-    vel = vel[:, extract]
+    pos = pos[extract,:]
+    vel = vel[extract,:]
     mass = mass[extract]
 
     #particlesDATA = particlesDATA[extract, :]
@@ -50,7 +50,7 @@ def calculate_kappa_co(pos, vel, mass):
     #)
     #particlesDATA[:, 4:7] -= dvVmass
 
-    dvVmass = np.sum(mass * vel, axis=0) / Mstar
+    dvVmass = np.sum(mass[:, np.newaxis] * vel, axis=0) / Mstar
     vel -= dvVmass
 
     #particlesDATA[:, 4:7] -= dvVmass
@@ -58,7 +58,7 @@ def calculate_kappa_co(pos, vel, mass):
 
     # Compute momentum
     smomentums = np.cross(pos, vel)
-    momentum = np.sum(mass * smomentums, axis=0)
+    momentum = np.sum(mass[:, np.newaxis] * smomentums, axis=0)
 
     #smomentums = np.cross(particlesDATA[:, :3], particlesDATA[:, 4:7])
     #momentum = np.sum(particlesDATA[:, 3][:, np.newaxis] * smomentums, axis=0)
