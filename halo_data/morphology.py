@@ -67,6 +67,10 @@ def calculate_kappa_co(pos, vel, mass):
     #smomentum_inner_5kpc = np.cross(pos[extract,:] * vel[extract, :])
     #momentum_inner_5kpc = np.sum(mass[extract] * smomentum_inner_5kpc, axis=0)
 
+    extract = distancesDATA < 5.0
+    smomentum_inner_5kpc = np.cross(pos[extract,:], vel[extract, :])
+    momentum_inner_5kpc = np.sum(mass[extract][:, np.newaxis] * smomentum_inner_5kpc, axis=0)
+
     #smomentum_inner_5kpc = np.cross(
     #    particlesDATA[extract, :3], particlesDATA[extract, 4:7]
     #)
@@ -110,7 +114,7 @@ def calculate_kappa_co(pos, vel, mass):
     #momentum_inner_5kpc /= np.linalg.norm(momentum_inner_5kpc)
 
     # Return
-    return kappa_co, sa_momentum
+    return kappa_co, sa_momentum, momentum_inner_5kpc
 
 def bin_centers(radial_bins):
     """Returns the centers of the bins. """
@@ -181,7 +185,8 @@ def calculate_morphology(sim_info, sample):
     DM_c_axis = np.zeros((num_bins, num_haloes))
     cross_section = np.zeros((num_bins-1, num_haloes))
     kappa = np.zeros(num_haloes)
-    ang_momentum = np.zeros(num_haloes)
+    ang_momentum = np.zeros((num_haloes, 3))
+    smomentum = np.zeros((num_haloes, 3))
 
     halo_index = sim_info.halo_data.halo_index[sample]
 
@@ -221,7 +226,7 @@ def calculate_morphology(sim_info, sample):
             vel[:, 1] -= sim_info.halo_data.vyminpot[sample[i]]
             vel[:, 2] -= sim_info.halo_data.vzminpot[sample[i]]
 
-            kappa[i], ang_momentum[i] = calculate_kappa_co(pos, vel, mass)
+            kappa[i], ang_momentum[i,:], smomentum[i,:] = calculate_kappa_co(pos, vel, mass)
 
 
-    return DM_a_axis, DM_b_axis, DM_c_axis, cross_section, radial_bins, kappa, ang_momentum
+    return DM_a_axis, DM_b_axis, DM_c_axis, cross_section, radial_bins, kappa, ang_momentum, smomentum

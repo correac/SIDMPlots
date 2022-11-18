@@ -38,7 +38,7 @@ def sci_notation(num, decimal_digits=1, precision=None, exponent=None):
     """
     try:
         if exponent is None:
-            exponent = int(floor(log10(abs(num))))
+            exponent = int(np.floor(np.log10(abs(num))))
         coeff = round(num / float(10 ** exponent), decimal_digits)
         if precision is None:
             precision = decimal_digits
@@ -100,7 +100,7 @@ def get_angular_momentum_vector(rparticles, vparticles, rgalaxy, vgalaxy, mparti
 
 
 def get_stars_surface_brightness_map(
-    sim_info, halo_id, size, npix, r_img_kpc
+    sim_info, halo_id, momentum, size, npix, r_img_kpc
 ):
     catalogue = load_catalogue(sim_info.halo_data.path_to_catalogue)
 
@@ -110,11 +110,13 @@ def get_stars_surface_brightness_map(
     z = catalogue.positions.zcmbp[halo_id]
 
     # angular momentum of the stars (for projection)
-    lx = catalogue.angular_momentum.lx_star[halo_id]
-    ly = catalogue.angular_momentum.ly_star[halo_id]
-    lz = catalogue.angular_momentum.lz_star[halo_id]
-
-    angular_momentum_vector = np.array([lx.value, ly.value, lz.value])
+    # lx = catalogue.angular_momentum.lx_star[halo_id]
+    # ly = catalogue.angular_momentum.ly_star[halo_id]
+    # lz = catalogue.angular_momentum.lz_star[halo_id]
+    #
+    # angular_momentum_vector = np.array([lx.value, ly.value, lz.value])
+    # angular_momentum_vector /= np.linalg.norm(angular_momentum_vector)
+    angular_momentum_vector = momentum
     angular_momentum_vector /= np.linalg.norm(angular_momentum_vector)
 
     # needs to be in comoving coordinates for the mask
@@ -213,7 +215,7 @@ def get_stars_surface_brightness_map(
     lx, ly = mass_map_face.shape
     X, Y = np.ogrid[0:lx, 0:ly]
     mask_circle = (X - lx / 2) ** 2 + (Y - ly / 2) ** 2 > lx * ly / 4
-    image_face[mask_circle, :] = 255
+    #image_face[mask_circle, :] = 255
 
     H_kpc_gri = np.zeros(len(luminosities))
     rgb_image_edge = np.zeros((npix, npix, len(luminosities)))
@@ -268,17 +270,17 @@ def get_stars_surface_brightness_map(
     lx, ly = mass_map_edge.shape
     X, Y = np.ogrid[0:lx, 0:ly]
     mask_circle = (X - lx / 2) ** 2 + (Y - ly / 2) ** 2 > lx * ly / 4
-    image_edge[mask_circle, :] = 255
+    # image_edge[mask_circle, :] = 255
 
     return image_face, image_edge, visualise_region, x, y, -1.0, H_kpc_gri
 
-def make_galaxy_images(sim_info, halo_index, halo_sample):
+def make_galaxy_images(sim_info, halo_index, halo_sample, momentum, kappa):
 
     #################################
     # Miscellaneous
     #################################
 
-    nr_total_plots = 2
+    nr_total_plots = 3
 
     npix = int(512 / 2)
 
@@ -314,14 +316,19 @@ def make_galaxy_images(sim_info, halo_index, halo_sample):
                 + r" M$_{\odot}$"
                 + "\n"
         )
+        text += (
+                r"$\kappa_{\mathrm{co}}$ = %.3f " % kappa[ihalo]
+                + "\n"
+        )
+        print(sci_notation(10**sim_info.halo_data.log10_halo_mass[halo_id]))
 
         fig = plt.figure(figsize=(6.0, 3.5))
         fig.subplots_adjust(left=0.01, right=0.95, top=0.85, bottom=0.12)
-        gs = gridspec.GridSpec(
-            2, nr_total_plots, wspace=0.0, hspace=0.15, height_ratios=[0.05, 1.0]
-        )
+        gs = gridspec.GridSpec(1, 3, wspace=0.0, hspace=0.0)
+        #     3, 1, wspace=0.0, hspace=0.15, height_ratios=[0.05, 1.0]
+        # )
 
-        ax = plt.subplot(gs[nr_total_plots])
+        ax = plt.subplot(gs[0])
         ax.set_aspect("equal")
         ax.tick_params(labelleft=False, labelbottom=False)
         ax.set_xticks([])
@@ -340,7 +347,7 @@ def make_galaxy_images(sim_info, halo_index, halo_sample):
         )
 
         # Stars gri face-on
-        ax = plt.subplot(gs[nr_total_plots + 1])
+        ax = plt.subplot(gs[1])
         ax.set_title("Stars (gri) - face")
         (
             mass_map_face,
@@ -351,7 +358,7 @@ def make_galaxy_images(sim_info, halo_index, halo_sample):
             totalmass,
             H_kpc_gri,
         ) = get_stars_surface_brightness_map(sim_info,
-            halo_sample[ihalo], size, npix, r_img_kpc
+            halo_sample[ihalo], momentum[ihalo,:], size, npix, r_img_kpc
         )
         mass_map_face_plot = mass_map_face
         mass_map_edge_plot = mass_map_edge
@@ -360,14 +367,14 @@ def make_galaxy_images(sim_info, halo_index, halo_sample):
         ax.set_yticks([])
         ax.set_axis_off()
         im = ax.imshow(mass_map_face_plot, extent=visualise_region)
-        circle = plt.Circle(
-            (x, y),
-            (0.99 * r_img_kpc.value) / 1000.0,
-            color="black",
-            fill=False,
-            linewidth=2,
-        )
-        ax.add_artist(circle)
+        # circle = plt.Circle(
+        #     (x, y),
+        #     (0.99 * r_img_kpc.value) / 1000.0,
+        #     color="black",
+        #     fill=False,
+        #     linewidth=2,
+        # )
+        #ax.add_artist(circle)
         ax.plot(
             [x - lbar_kpc / 2.0, x + lbar_kpc / 2.0],
             [y + ypos_bar, y + ypos_bar],
@@ -384,21 +391,21 @@ def make_galaxy_images(sim_info, halo_index, halo_sample):
             horizontalalignment="center",
         )
         # Stars gri edge-on
-        ax = plt.subplot(gs[nr_total_plots + 2])
+        ax = plt.subplot(gs[2])
         ax.set_title("Stars (gri) - edge")
         ax.tick_params(labelleft=False, labelbottom=False)
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_axis_off()
         im = ax.imshow(mass_map_edge_plot, extent=visualise_region)
-        circle = plt.Circle(
-            (x, y),
-            (0.99 * r_img_kpc.value) / 1000.0,
-            color="black",
-            fill=False,
-            linewidth=2,
-        )
-        ax.add_artist(circle)
+        # circle = plt.Circle(
+        #     (x, y),
+        #     (0.99 * r_img_kpc.value) / 1000.0,
+        #     color="black",
+        #     fill=False,
+        #     linewidth=2,
+        # )
+        # ax.add_artist(circle)
         ax.text(
             0.5,
             0.2,
