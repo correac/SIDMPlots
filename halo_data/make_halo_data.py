@@ -2,6 +2,7 @@ import numpy as np
 import h5py
 from .density_profile import calculate_halo_data, calculate_halo_data_hydro
 from .morphology import calculate_morphology
+from .galaxy_image import make_galaxy_images
 
 def bin_centers(radial_bins):
     """Returns the centers of the bins. """
@@ -78,6 +79,8 @@ def make_halo_data(sim_info):
 
     # Morphology/shape estimations
     a_axis, b_axis, c_axis, cross_section, radius, kappa, Lmomentum = calculate_morphology(sim_info, sample)
+
+    make_galaxy_images(sim_info, halo_index, sample)
 
     # Output data
     output_file = f"{sim_info.output_path}/Halo_data_" + sim_info.simulation_name + ".hdf5"

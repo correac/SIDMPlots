@@ -172,14 +172,13 @@ def calculate_morphology(sim_info, sample):
 
     num_haloes = len(sample)
 
-    radial_bins = np.arange(0, 2, 0.2)
+    radial_bins = np.arange(0, 3, 0.2)
     radial_bins = 10**radial_bins
-    centered_radial_bins = bin_centers(radial_bins)  # kpc
     num_bins = len(radial_bins)
 
-    a_axis = np.zeros((num_bins, num_haloes))
-    b_axis = np.zeros((num_bins, num_haloes))
-    c_axis = np.zeros((num_bins, num_haloes))
+    DM_a_axis = np.zeros((num_bins, num_haloes))
+    DM_b_axis = np.zeros((num_bins, num_haloes))
+    DM_c_axis = np.zeros((num_bins, num_haloes))
     cross_section = np.zeros((num_bins-1, num_haloes))
     kappa = np.zeros(num_haloes)
     ang_momentum = np.zeros(num_haloes)
@@ -207,7 +206,7 @@ def calculate_morphology(sim_info, sample):
 
             select = np.where(r < radial_bins[j])[0]
 
-            a_axis[j,i], b_axis[j,i], c_axis[j,i] = AxialRatios(pos[select, :], mass[select])
+            DM_a_axis[j,i], DM_b_axis[j,i], DM_c_axis[j,i] = AxialRatios(pos[select, :], mass[select])
 
         if sim_info.simulation_type == 'Hydro':
 
@@ -225,4 +224,4 @@ def calculate_morphology(sim_info, sample):
             kappa[i], ang_momentum[i] = calculate_kappa_co(pos, vel, mass)
 
 
-    return a_axis, b_axis, c_axis, cross_section, radial_bins, kappa, ang_momentum
+    return DM_a_axis, DM_b_axis, DM_c_axis, cross_section, radial_bins, kappa, ang_momentum
