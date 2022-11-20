@@ -176,18 +176,29 @@ def calculate_morphology(sim_info, sample):
 
     num_haloes = len(sample)
 
-    radial_bins = np.arange(0, 3, 0.2)
+    radial_bins = np.arange(0, 3.1, 0.1)
     radial_bins = 10**radial_bins
     num_bins = len(radial_bins)
 
     DM_a_axis = np.zeros((num_bins, num_haloes))
     DM_b_axis = np.zeros((num_bins, num_haloes))
     DM_c_axis = np.zeros((num_bins, num_haloes))
-    Nparts = np.zeros((num_bins, num_haloes))
+    DMNparts = np.zeros((num_bins, num_haloes))
     cross_section = np.zeros((num_bins-1, num_haloes))
     kappa = np.zeros(num_haloes)
     ang_momentum = np.zeros((num_haloes, 3))
     smomentum = np.zeros((num_haloes, 3))
+
+    Stars_a_axis = np.zeros((num_bins, num_haloes))
+    Stars_b_axis = np.zeros((num_bins, num_haloes))
+    Stars_c_axis = np.zeros((num_bins, num_haloes))
+    StarsNparts = np.zeros((num_bins, num_haloes))
+
+    Gas_a_axis = np.zeros((num_bins, num_haloes))
+    Gas_b_axis = np.zeros((num_bins, num_haloes))
+    Gas_c_axis = np.zeros((num_bins, num_haloes))
+    GasNparts = np.zeros((num_bins, num_haloes))
+
 
     halo_index = sim_info.halo_data.halo_index[sample]
 
@@ -212,9 +223,11 @@ def calculate_morphology(sim_info, sample):
 
             select = np.where(r <= radial_bins[j])[0]
 
-            DM_a_axis[j,i], DM_b_axis[j,i], DM_c_axis[j,i] = AxialRatios(pos[select, :], mass[select])
+            DMNparts[j,i] = len(select)
 
-            Nparts[j,i] = len(select)
+            if len(select) < 10: continue
+
+            DM_a_axis[j,i], DM_b_axis[j,i], DM_c_axis[j,i] = AxialRatios(pos[select, :], mass[select])
 
         if sim_info.simulation_type == 'Hydro':
 
@@ -231,5 +244,39 @@ def calculate_morphology(sim_info, sample):
 
             kappa[i], ang_momentum[i,:], smomentum[i,:] = calculate_kappa_co(pos, vel, mass)
 
+            r = np.sqrt(np.sum(pos ** 2, axis=1))
 
-    return DM_a_axis, DM_b_axis, DM_c_axis, cross_section, radial_bins, kappa, ang_momentum, smomentum, Nparts
+            for j in range(num_bins):
+
+                select = np.where(r <= radial_bins[j])[0]
+
+                StarsNparts[j, i] = len(select)
+
+                if len(select) < 10: continue
+
+                Stars_a_axis[j, i], Stars_b_axis[j, i], Stars_c_axis[j, i] = AxialRatios(pos[select, :], mass[select])
+
+
+            gas_bound_particles_only = part_data.select_bound_particles(sim_info, halo_index[i], part_data.gas.ids)
+
+            if (len(gas_bound_particles_only) < 10) : continue
+
+            mass = part_data.gas.masses.value[stars_bound_particles_only]
+            pos = part_data.gas.coordinates.value[stars_bound_particles_only, :]
+            r = np.sqrt(np.sum(pos ** 2, axis=1))
+
+            for j in range(num_bins):
+
+                select = np.where(r <= radial_bins[j])[0]
+
+                GasNparts[j, i] = len(select)
+
+                if len(select) < 10: continue
+
+                Gas_a_axis[j, i], Gas_b_axis[j, i], Gas_c_axis[j, i] = AxialRatios(pos[select, :], mass[select])
+
+
+    return {'DM_a_axis':DM_a_axis, 'DM_b_axis':DM_b_axis, 'DM_c_axis':DM_c_axis, 'DMNparts':DMNparts,
+            'cross_section':cross_section, 'radial_bins':radial_bins, 'kappa':kappa,  'Lmomentum':ang_momentum, 'smomentum':smomentum,
+            'Gas_a_axis': Gas_a_axis, 'Gas_b_axis': Gas_b_axis, 'Gas_c_axis': Gas_c_axis, 'GasNparts':GasNparts,
+            'Stars_a_axis': Stars_a_axis, 'Stars_b_axis': Stars_b_axis, 'Stars_c_axis': Stars_c_axis, 'StarsNparts': StarsNparts}

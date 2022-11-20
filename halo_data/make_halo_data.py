@@ -29,7 +29,7 @@ def calculate_relaxation(sim_info, sample):
 def load_profiles(sim_info, halo_index, output_file):
 
     # Related to internal structure evolution
-    radial_bins = np.arange(-1, 3, 0.1)
+    radial_bins = np.arange(-1, 3.1, 0.1)
     radial_bins = 10 ** radial_bins
     centered_radial_bins = bin_centers(radial_bins)  # kpc
 
@@ -78,8 +78,11 @@ def make_halo_data(sim_info):
     Vmax = sim_info.halo_data.vmax[sample]
 
     # # Morphology/shape estimations
-    a_axis, b_axis, c_axis, cross_section, radius, kappa, \
-    Lmomentum, smomentum, Nparts = calculate_morphology(sim_info, sample[0:25])
+    data = calculate_morphology(sim_info, sample[0:25])
+
+    kappa = data['kappa']
+    smomentum = data['smomentum']
+    Lmomentum = data['Lmomentum']
 
     make_galaxy_images(sim_info, halo_index[0:25], sample[0:25], smomentum[:,0:25], kappa[0:25])
 
@@ -95,12 +98,24 @@ def make_halo_data(sim_info):
     f.create_dataset('R200c', data=R200c)
     f.create_dataset('Vmax', data=Vmax)
     f.create_dataset('DynamicalRelaxation', data=relaxation)
-    f.create_dataset('MajorAxis_a', data=a_axis)
-    f.create_dataset('MinorAxis_b', data=b_axis)
-    f.create_dataset('MinorAxis_c', data=c_axis)
-    f.create_dataset('AxisRadius', data=radius)
-    f.create_dataset('CrossSection', data=cross_section)
-    f.create_dataset('NparticlesWithinAxisRadius', data=Nparts)
+    f.create_dataset('CrossSection', data=data['cross_section'])
+
+    f.create_dataset('AxisRadius', data=data['radial_bins'])
+
+    f.create_dataset('DMMajorAxis_a', data=data['DM_a_axis'])
+    f.create_dataset('DMMinorAxis_b', data=data['DM_b_axis'])
+    f.create_dataset('DMMinorAxis_c', data=data['DM_c_axis'])
+    f.create_dataset('DMNparticlesWithinAxisRadius', data=data['DMNparts'])
+
+    f.create_dataset('StarsMajorAxis_a', data=data['Stars_a_axis'])
+    f.create_dataset('StarsMinorAxis_b', data=data['Stars_b_axis'])
+    f.create_dataset('StarsMinorAxis_c', data=data['Stars_c_axis'])
+    f.create_dataset('StarsNparticlesWithinAxisRadius', data=data['StarsNparts'])
+
+    f.create_dataset('GasMajorAxis_a', data=data['Gas_a_axis'])
+    f.create_dataset('GasMinorAxis_b', data=data['Gas_b_axis'])
+    f.create_dataset('GasMinorAxis_c', data=data['Gas_c_axis'])
+    f.create_dataset('GasNparticlesWithinAxisRadius', data=data['GasNparts'])
 
     if sim_info.simulation_type == 'Hydro':
 
