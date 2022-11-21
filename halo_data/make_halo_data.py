@@ -78,7 +78,7 @@ def make_halo_data(sim_info):
     Vmax = sim_info.halo_data.vmax[sample]
 
     # # Morphology/shape estimations
-    data = calculate_morphology(sim_info, sample[0:25])
+    data = calculate_morphology(sim_info, sample)
 
     kappa = data['kappa']
     smomentum = data['smomentum']
