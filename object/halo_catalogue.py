@@ -68,15 +68,15 @@ class HaloCatalogue:
 
             # Log10 stellar mass in units of Msun
             self.log10_stellar_mass = np.log10(
-                catalogue.apertures.mass_star_30_kpc.to("Msun").value[mask]
+                catalogue.apertures.mass_star_50_kpc.to("Msun").value[mask]
             )
 
             # Log10 gas mass in units of Msun
             self.log10_gas_mass = np.log10(
-                catalogue.apertures.mass_gas_30_kpc.to("Msun").value[mask]
+                catalogue.apertures.mass_gas_50_kpc.to("Msun").value[mask]
             )
 
-            self.galaxy_size = catalogue.apertures.rhalfmass_star_30_kpc.to("kpc").value[mask]
+            self.galaxy_size = catalogue.apertures.rhalfmass_star_50_kpc.to("kpc").value[mask]
 
             # Half mass radius in units of kpc (stars)
             self.half_mass_radius_star = catalogue.radii.r_halfmass_star.to("kpc").value[mask]
@@ -85,12 +85,12 @@ class HaloCatalogue:
             self.half_mass_radius_gas = catalogue.radii.r_halfmass_gas.to("kpc").value[mask]
 
             # Star formation rate in units of Msun/yr
-            self.sfr = catalogue.apertures.sfr_gas_30_kpc.to("Msun/yr").value[mask]
+            self.sfr = catalogue.apertures.sfr_gas_50_kpc.to("Msun/yr").value[mask]
 
             # Metallicity of star-forming gas
-            self.metallicity_gas_sfr = catalogue.apertures.zmet_gas_sf_30_kpc.to("dimensionless").value[mask]
+            self.metallicity_gas_sfr = catalogue.apertures.zmet_gas_sf_50_kpc.to("dimensionless").value[mask]
 
             # Metallicity of all gas
-            self.metallicity_gas = catalogue.apertures.zmet_gas_30_kpc.to("dimensionless").value[mask]
+            self.metallicity_gas = catalogue.apertures.zmet_gas_50_kpc.to("dimensionless").value[mask]
 
-            self.metallicity_stars = catalogue.apertures.zmet_star_30_kpc.to("dimensionless").value[mask]
+            self.metallicity_stars = catalogue.apertures.zmet_star_50_kpc.to("dimensionless").value[mask]
