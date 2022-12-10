@@ -67,7 +67,7 @@ def load_profiles(sim_info, halo_index, output_file):
 
 def make_halo_data(sim_info):
 
-    sample = np.where(sim_info.halo_data.log10_halo_mass >= 10)[0]
+    sample = np.where(sim_info.halo_data.log10_halo_mass >= 6)[0]
 
     halo_index = sim_info.halo_data.halo_index[sample]
     M200c = sim_info.halo_data.log10_halo_mass[sample]
@@ -78,7 +78,7 @@ def make_halo_data(sim_info):
     Vmax = sim_info.halo_data.vmax[sample]
 
     # # Morphology/shape estimations
-    data = calculate_morphology(sim_info, sample)
+    data = calculate_morphology(sim_info, sample[0:25])
 
     kappa = data['kappa']
     smomentum = data['smomentum']
@@ -135,4 +135,4 @@ def make_halo_data(sim_info):
 
     data_file.close()
 
-    load_profiles(sim_info, halo_index, output_file)
+    #load_profiles(sim_info, halo_index, output_file)

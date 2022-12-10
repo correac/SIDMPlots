@@ -28,7 +28,7 @@ class HaloCatalogue:
 
         # Selecting haloes that contain at less 1000 DM particles
         mask = np.where(
-            catalogue.masses.mass_200crit.to("Msun").value >= unyt.unyt_quantity(1e3 * dm_particle_mass, "Msun")
+            catalogue.masses.mass_200crit.to("Msun").value >= unyt.unyt_quantity(10 * dm_particle_mass, "Msun")
         )[0]
 
         # Compute the number of haloes following the selection mask
