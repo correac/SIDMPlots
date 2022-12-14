@@ -98,6 +98,11 @@ def get_angular_momentum_vector(rparticles, vparticles, rgalaxy, vgalaxy, mparti
 
     return face_on_rotation_matrix, edge_on_rotation_matrix
 
+def make_rotation_matrix(ang_momentum):
+
+    face_on_rotation_matrix = rotation_matrix_from_vector(ang_momentum)
+    edge_on_rotation_matrix = rotation_matrix_from_vector(ang_momentum, axis="y")
+    return face_on_rotation_matrix, edge_on_rotation_matrix
 
 def get_stars_surface_brightness_map(
     sim_info, halo_id, momentum, size, npix, r_img_kpc
@@ -151,16 +156,20 @@ def get_stars_surface_brightness_map(
         dimension=3,
     )
 
-    face_on_rotation_matrix, edge_on_rotation_matrix = get_angular_momentum_vector(
-        data.stars.coordinates,
-        data.stars.velocities,
-        [x, y, z],
-        [
-            catalogue.velocities.vxcmbp[halo_id],
-            catalogue.velocities.vycmbp[halo_id],
-            catalogue.velocities.vzcmbp[halo_id],
-        ],
-        data.stars.masses,
+    # face_on_rotation_matrix, edge_on_rotation_matrix = get_angular_momentum_vector(
+    #     data.stars.coordinates,
+    #     data.stars.velocities,
+    #     [x, y, z],
+    #     [
+    #         catalogue.velocities.vxcmbp[halo_id],
+    #         catalogue.velocities.vycmbp[halo_id],
+    #         catalogue.velocities.vzcmbp[halo_id],
+    #     ],
+    #     data.stars.masses,
+    # )
+
+    face_on_rotation_matrix, edge_on_rotation_matrix = make_rotation_matrix(
+        angular_momentum_vector
     )
 
     luminosities = [
@@ -374,22 +383,24 @@ def make_galaxy_images(sim_info, halo_index, halo_sample, momentum, kappa):
         #     fill=False,
         #     linewidth=2,
         # )
+
         #ax.add_artist(circle)
-        ax.plot(
-            [x - lbar_kpc / 2.0, x + lbar_kpc / 2.0],
-            [y + ypos_bar, y + ypos_bar],
-            color="white",
-            linewidth=2,
-            linestyle="solid",
-        )
-        ax.text(
-            x,
-            y + ypos_bar,
-            "%i kpc" % (int(lbar_kpc.value)),
-            color="white",
-            verticalalignment="bottom",
-            horizontalalignment="center",
-        )
+        # ax.plot(
+        #     [x - lbar_kpc / 2.0, x + lbar_kpc / 2.0],
+        #     [y + ypos_bar, y + ypos_bar],
+        #     color="white",
+        #     linewidth=2,
+        #     linestyle="solid",
+        # )
+        # ax.text(
+        #     x,
+        #     y + ypos_bar,
+        #     "%i kpc" % (int(lbar_kpc.value)),
+        #     color="white",
+        #     verticalalignment="bottom",
+        #     horizontalalignment="center",
+        # )
+
         # Stars gri edge-on
         ax = plt.subplot(gs[2])
         ax.set_title("Stars (gri) - edge")
@@ -406,16 +417,17 @@ def make_galaxy_images(sim_info, halo_index, halo_sample, momentum, kappa):
         #     linewidth=2,
         # )
         # ax.add_artist(circle)
-        ax.text(
-            0.5,
-            0.2,
-            r"H$_{r}$ = %.2f kpc" % (H_kpc_gri[1]),
-            ha="center",
-            va="top",
-            color="white",
-            transform=ax.transAxes,
-            fontsize=8,
-        )
+
+        #ax.text(
+        #    0.5,
+        #    0.2,
+        #    r"H$_{r}$ = %.2f kpc" % (H_kpc_gri[1]),
+        #    ha="center",
+        #    va="top",
+        #    color="white",
+        #    transform=ax.transAxes,
+        #    fontsize=8,
+        #)
 
         fig.savefig(
             f"{sim_info.output_path}" + "/surface_overview_halo%3.3i_" % (ihalo) + sim_info.simulation_name + ".png",

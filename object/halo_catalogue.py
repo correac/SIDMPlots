@@ -64,6 +64,8 @@ class HaloCatalogue:
         self.ycom = catalogue.positions.yc.to("Mpc").value[mask]
         self.zcom = catalogue.positions.zc.to("Mpc").value[mask]
 
+        self.id_mbp = catalogue.ids.id_mbp.value[mask]
+
         if simulation_type == 'Hydro':
 
             # Log10 stellar mass in units of Msun
