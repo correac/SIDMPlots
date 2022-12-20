@@ -221,9 +221,9 @@ def get_stars_surface_brightness_map(
         stretch=0.5,
     )
     # mask with circle
-    lx, ly = mass_map_face.shape
-    X, Y = np.ogrid[0:lx, 0:ly]
-    mask_circle = (X - lx / 2) ** 2 + (Y - ly / 2) ** 2 > lx * ly / 4
+    # lx, ly = mass_map_face.shape
+    # X, Y = np.ogrid[0:lx, 0:ly]
+    # mask_circle = (X - lx / 2) ** 2 + (Y - ly / 2) ** 2 > lx * ly / 4
     #image_face[mask_circle, :] = 255
 
     H_kpc_gri = np.zeros(len(luminosities))
@@ -266,8 +266,6 @@ def get_stars_surface_brightness_map(
             H_kpc_gri[ilum] = -1.0
         rgb_image_edge[:, :, ilum] = mass_map_edge.T
 
-    print("H (gri): ", H_kpc_gri)
-
     image_edge = make_lupton_rgb(
         rgb_image_edge[:, :, 0],
         rgb_image_edge[:, :, 1],
@@ -276,9 +274,9 @@ def get_stars_surface_brightness_map(
         stretch=0.5,
     )
     # mask with circle
-    lx, ly = mass_map_edge.shape
-    X, Y = np.ogrid[0:lx, 0:ly]
-    mask_circle = (X - lx / 2) ** 2 + (Y - ly / 2) ** 2 > lx * ly / 4
+    # lx, ly = mass_map_edge.shape
+    # X, Y = np.ogrid[0:lx, 0:ly]
+    # mask_circle = (X - lx / 2) ** 2 + (Y - ly / 2) ** 2 > lx * ly / 4
     # image_edge[mask_circle, :] = 255
 
     return image_face, image_edge, visualise_region, x, y, -1.0, H_kpc_gri
@@ -305,8 +303,9 @@ def make_galaxy_images(sim_info, halo_index, halo_sample, momentum, kappa):
 
         ####
         # General information
-        text = sim_info.simulation_name + ", z = %.1f" % (sim_info.z) + "\n\n"
-        text += r"${\bf" + "VR\ halo\ id:\ \ \ %3.3i" % (halo_id) + r"}$" + "\n"
+        text = sim_info.simulation_name + "\n"
+        text += "z = %.1f" % (sim_info.z) + "\n"
+        text += r"${\bf" + "Halo\ id:\ \ \ %3.3i" % (halo_id) + r"}$" + "\n"
         text += (
                 r"M$_{\mathrm{200,crit}}$ = "
                 + sci_notation(10**sim_info.halo_data.log10_halo_mass[halo_id])
@@ -329,13 +328,11 @@ def make_galaxy_images(sim_info, halo_index, halo_sample, momentum, kappa):
                 r"$\kappa_{\mathrm{co}}$ = %.3f " % kappa[ihalo]
                 + "\n"
         )
-        print(sci_notation(10**sim_info.halo_data.log10_halo_mass[halo_id]))
+        # print(sci_notation(10**sim_info.halo_data.log10_halo_mass[halo_id]))
 
         fig = plt.figure(figsize=(6.0, 3.5))
         fig.subplots_adjust(left=0.01, right=0.95, top=0.85, bottom=0.12)
         gs = gridspec.GridSpec(1, 3, wspace=0.0, hspace=0.0)
-        #     3, 1, wspace=0.0, hspace=0.15, height_ratios=[0.05, 1.0]
-        # )
 
         ax = plt.subplot(gs[0])
         ax.set_aspect("equal")
@@ -376,6 +373,7 @@ def make_galaxy_images(sim_info, halo_index, halo_sample, momentum, kappa):
         ax.set_yticks([])
         ax.set_axis_off()
         im = ax.imshow(mass_map_face_plot, extent=visualise_region)
+
         # circle = plt.Circle(
         #     (x, y),
         #     (0.99 * r_img_kpc.value) / 1000.0,
@@ -434,3 +432,34 @@ def make_galaxy_images(sim_info, halo_index, halo_sample, momentum, kappa):
             dpi=300,
         )
         plt.close()
+
+        ####
+
+        fig = plt.figure(figsize=(6.0, 6.0))
+        fig.subplots_adjust(left=0.0, right=1.0, top=1.0, bottom=0.0)
+        ax = plt.subplot(1, 1, 1)
+        ax.tick_params(labelleft=False, labelbottom=False)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_axis_off()
+        ax.imshow(mass_map_face_plot, extent=visualise_region)
+        fig.savefig(
+            f"{sim_info.output_path}" + "/face_on_halo%3.3i_" % (ihalo) + sim_info.simulation_name + ".png",
+            dpi=300,
+        )
+        plt.close()
+
+        fig = plt.figure(figsize=(6.0, 6.0))
+        fig.subplots_adjust(left=0.0, right=1.0, top=1.0, bottom=0.0)
+        ax = plt.subplot(1, 1, 1)
+        ax.tick_params(labelleft=False, labelbottom=False)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_axis_off()
+        ax.imshow(mass_map_edge_plot, extent=visualise_region)
+        fig.savefig(
+            f"{sim_info.output_path}" + "/edge_on_halo%3.3i_" % (ihalo) + sim_info.simulation_name + ".png",
+            dpi=300,
+        )
+        plt.close()
+

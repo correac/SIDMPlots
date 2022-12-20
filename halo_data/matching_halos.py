@@ -114,7 +114,7 @@ def look_for_particle_ids(sim_info, halo_index):
     return dm_part_ids
 
 def look_for_min_distance_and_mass(cdm_info, sample, sidm_info, sidm_haloes):
-    num_haloes = len(sidm_haloes)
+
     cdm_halo_mass = cdm_info.halo_data.log10_halo_mass[sample]
     sidm_haloes_all = sidm_info.halo_data.halo_index
 
@@ -126,9 +126,12 @@ def look_for_min_distance_and_mass(cdm_info, sample, sidm_info, sidm_haloes):
 
     sidm_halo_mass = sidm_info.halo_data.log10_halo_mass[sample_sidm]
     sidm_mass_diff = sidm_halo_mass - cdm_halo_mass
-    select = np.where(sidm_mass_diff == np.min(sidm_mass_diff))[0]
+
+    select = np.where(np.abs(sidm_mass_diff) == np.min(np.abs(sidm_mass_diff)))[0]
+
     if len(select) == 1:
         match = sidm_haloes[select]
+
     else:
         cdm_center = np.array([
             cdm_info.halo_data.xminpot[sample],
@@ -136,11 +139,16 @@ def look_for_min_distance_and_mass(cdm_info, sample, sidm_info, sidm_haloes):
             cdm_info.halo_data.zminpot[sample],
         ])
 
-        sidm_center = np.array([
-            sidm_info.halo_data.xminpot[sample_sidm[select]],
-            sidm_info.halo_data.yminpot[sample_sidm[select]],
-            sidm_info.halo_data.zminpot[sample_sidm[select]],
-        ])
+        sidm_center = np.zeros((3,len(select)))
+        sidm_center[0,:] = sidm_info.halo_data.xminpot[sample_sidm[select]]
+        sidm_center[1,:] = sidm_info.halo_data.yminpot[sample_sidm[select]]
+        sidm_center[2,:] = sidm_info.halo_data.zminpot[sample_sidm[select]]
+
+        # sidm_center = np.array([
+        #     sidm_info.halo_data.xminpot[sample_sidm[select]],
+        #     sidm_info.halo_data.yminpot[sample_sidm[select]],
+        #     sidm_info.halo_data.zminpot[sample_sidm[select]],
+        # ])
 
         r = sidm_center - cdm_center
         r = np.sqrt(np.sum(r ** 2, axis=1))
@@ -150,46 +158,43 @@ def look_for_min_distance_and_mass(cdm_info, sample, sidm_info, sidm_haloes):
     return match # returning SIDM halo index
 
 
-def match_simulations(sim_info, sidm1_info):
+def match_simulations(cdm_info, sidm_info):
     """
-    :param sim_info: class for CDM simulation
-    :param sidm1_info: class data for SigmaConstant10 simulation
-    :param sidm2_info: class data for SigmaVel60 simulation
-    :return:
+    :param cdm_info: class for CDM simulation
+    :param sidm_info: class data for SIDM simulation
+    :return: output file
     """
 
-    sample = np.where(sim_info.halo_data.log10_halo_mass >= 12)[0]
-    print(len(sample))
-    print(sim_info.halo_data.log10_halo_mass[sample])
+    sample = np.where(cdm_info.halo_data.log10_halo_mass >= 12)[0]
 
-    halo_index = sim_info.halo_data.halo_index[sample]
+    halo_index = cdm_info.halo_data.halo_index[sample]
     num_haloes = len(sample)
 
-    matched_halo_SigmaConstant10 = np.zeros(num_haloes)
-    # matched_halo_SigmaVel60 = np.zeros(num_haloes)
+    matched_halo_sidm = np.zeros(num_haloes)
 
     for i in tqdm(range(num_haloes)):
-        print('i',i)
 
         if halo_index[i] == -1: continue # no progenitor-found case
 
-        cdm_part_ids = look_for_particle_ids(sim_info, halo_index[i])
+        cdm_part_ids = look_for_particle_ids(cdm_info, halo_index[i])
 
-        sidm_haloes = select_haloes(sidm1_info, cdm_part_ids)
-        print('sidm haloes', sidm_haloes, halo_index[i])
+        sidm_haloes = select_haloes(sidm_info, cdm_part_ids)
+
         if len(sidm_haloes) == 1:
-            matched_halo_SigmaConstant10[i] = sidm_haloes
+            matched_halo_sidm[i] = sidm_haloes
 
-        # else:
-        #     matched_halo_SigmaConstant10[i] = look_for_min_distance_and_mass(
-        #         sim_info, sample[i], sidm1_info, sidm_haloes)
+        else:
+            matched_halo_sidm[i] = look_for_min_distance_and_mass(
+                cdm_info, sample[i], sidm_info, sidm_haloes)
 
-        # sidm_haloes = select_haloes(sidm2_info, cdm_part_ids)
-        # if len(sidm_haloes) == 1:
-        #     matched_halo_SigmaVel60[i] = sidm_haloes
-        # else:
-        #     matched_halo_SigmaVel60[i] = look_for_min_distance_and_mass(
-        #         sim_info, sample[i], sidm2_info, sidm_haloes)
+        print('sidm haloes', matched_halo_sidm[i], halo_index[i])
 
+    # Output data
+    output_file = f"{cdm_info.output_path}/Halo_match_" + sidm_info.simulation_name + ".hdf5"
+    data_file = h5py.File(output_file, 'w')
+    f = data_file.create_group('Halo_matched')
+    f.create_dataset('CDM_HaloIndex', data=halo_index)
+    f.create_dataset('SIDM_HaloIndex', data=matched_halo_sidm)
+    data_file.close()
 
 

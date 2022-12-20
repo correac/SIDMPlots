@@ -1,10 +1,10 @@
 #!/bin/bash
 
 python3 matchsidm.py \
--d /Users/camila/SimulationData/mahti/L025N376/Hydro/SigmaConstant00 /Users/camila/SimulationData/mahti/L025N376/Hydro/SigmaConstant00 \
+-d /Users/camila/SimulationData/mahti/L025N376/Hydro/SigmaConstant00 /Users/camila/SimulationData/mahti/L025N376/Hydro/SigmaConstant10 \
 -s snapshot_0036.hdf5 snapshot_0036.hdf5 \
 -c subhalo_0036.properties subhalo_0036.properties \
--n RefModel2L025N376SigmaConstant00 Test \
+-n RefL025N376SigmaConstant00 RefL025N376SigmaConstant10 \
 -t Hydro Hydro \
 -o /Users/camila/SimulationData/mahti/L025N376/Hydro/SigmaConstant00/output_data
 

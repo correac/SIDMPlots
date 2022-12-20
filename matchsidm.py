@@ -32,7 +32,7 @@ def main(config: ArgumentParser):
                 simtype=sim_type,
             )
         if sim == 1:
-            sidm1_sim_info = simulation_data.SimInfo(
+            sidm_sim_info = simulation_data.SimInfo(
                 directory=directory,
                 snapshot=snapshot,
                 catalogue=catalogue,
@@ -40,17 +40,8 @@ def main(config: ArgumentParser):
                 output=output,
                 simtype=sim_type,
             )
-        # if sim == 2:
-        #     sidm2_sim_info = simulation_data.SimInfo(
-        #         directory=directory,
-        #         snapshot=snapshot,
-        #         catalogue=catalogue,
-        #         name=sim_name,
-        #         output=output,
-        #         simtype=sim_type,
-        #     )
 
-    match_simulations(cdm_sim_info, sidm1_sim_info)
+    match_simulations(cdm_sim_info, sidm_sim_info)
 
     # Compute how much time it took to run the script
     time_end = time()
