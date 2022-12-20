@@ -165,7 +165,7 @@ def match_simulations(cdm_info, sidm_info):
     :return: output file
     """
 
-    sample = np.where(cdm_info.halo_data.log10_halo_mass >= 12)[0]
+    sample = np.where(cdm_info.halo_data.log10_halo_mass >= 10)[0]
 
     halo_index = cdm_info.halo_data.halo_index[sample]
     num_haloes = len(sample)
@@ -187,7 +187,7 @@ def match_simulations(cdm_info, sidm_info):
             matched_halo_sidm[i] = look_for_min_distance_and_mass(
                 cdm_info, sample[i], sidm_info, sidm_haloes)
 
-        print('sidm haloes', matched_halo_sidm[i], halo_index[i])
+        # print('sidm haloes', matched_halo_sidm[i], halo_index[i])
 
     # Output data
     output_file = f"{cdm_info.output_path}/Halo_match_" + sidm_info.simulation_name + ".hdf5"

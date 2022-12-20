@@ -67,7 +67,7 @@ def load_profiles(sim_info, halo_index, output_file):
 
 def make_halo_data(sim_info):
 
-    sample = np.where(sim_info.halo_data.log10_halo_mass >= 12)[0]
+    sample = np.where(sim_info.halo_data.log10_halo_mass >= 11)[0]
 
     halo_index = sim_info.halo_data.halo_index[sample]
     M200c = sim_info.halo_data.log10_halo_mass[sample]
