@@ -208,7 +208,10 @@ def match_simulations(cdm_info, sidm_info):
 
         sidm_haloes = select_haloes(sidm_info, cdm_part_ids)
 
-        if len(sidm_haloes) == 1:
+        if len(sidm_haloes) == 0:
+            matched_halo_sidm[i] = -1
+
+        elif len(sidm_haloes) == 1:
             matched_halo_sidm[i] = sidm_haloes
 
         else:
