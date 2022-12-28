@@ -78,22 +78,28 @@ def select_haloes(sim_info, cdm_ids):
     for i in range(len(cdm_ids)):
         select = np.where(particle_ids_sim == cdm_ids[i])[0]
         if len(select) == 1:
-            match_sim[i] = select
+            select_halo_range = np.where(halo_position <= select)[0]
+            match_sim[i] = select_halo_range[-1]
+        #     match_sim[i] = select
 
-    # Remove zero case
-    match_sim = match_sim[match_sim>0]
-    match_sim = match_sim.astype('int')
+    # # Remove zero case
+    # match_sim = match_sim[match_sim>0]
+    # match_sim = match_sim.astype('int')
+    #
+    # min_match = np.min(match_sim)
+    # max_match = np.max(match_sim)
+    # select_min_range = np.where(min_match >= halo_position)[0]
+    # select_max_range = np.where(max_match <= halo_position)[0]
+    #
+    # if select_max_range[0]-1 > select_min_range[-1]:
+    #     halo = np.arange(select_min_range[-1],select_max_range[0]-1,1)
+    # else:
+    #     halo = np.array([select_min_range[-1]])
 
-    min_match = np.min(match_sim)
-    max_match = np.max(match_sim)
-    select_min_range = np.where(min_match >= halo_position)[0]
-    select_max_range = np.where(max_match <= halo_position)[0]
-
-    if select_max_range[0]-1 > select_min_range[-1]:
-        halo = np.arange(select_min_range[-1],select_max_range[0]-1,1)
-    else:
-        halo = np.array([select_min_range[-1]])
-
+    halo, count = np.unique(match_sim, return_counts=True)
+    print(halo, count)
+    # halo = halo[count == np.amax(count)]
+    halo = halo[count > 10]
     return halo
 
 def look_for_particle_ids(sim_info, halo_index):
@@ -108,10 +114,28 @@ def look_for_particle_ids(sim_info, halo_index):
     dm_part_ids = part_data.dark_matter.ids[dm_bound_particles_only]
     dm_part_ids = dm_part_ids[within_2_kpc]
 
-    if len(dm_part_ids) > 10:
-        dm_part_ids = dm_part_ids[0:11]  # Select random 10 dm parts within 2kpc region
+    if len(dm_part_ids) > 100:
+        dm_part_ids = dm_part_ids[0:100]  # Select random 100 dm parts within 2kpc region
 
     return dm_part_ids
+
+def nearest(boxsize, x):
+    """
+    Small routine to check that the separation distance between
+    x1 and x2 is not incorrectly calculated due to the fact that
+    the simulation box used was periodic, with size filesize
+    x is an array of particles positions minus some central point
+    boxsize is the size of the simulation box
+    Written by Alan Duffy, based on a similar C version by V.Springel
+    """
+    halfboxsize = boxsize / 2.
+    gtx = np.where(x > halfboxsize)[0]
+    ltx = np.where(x < (-1. * halfboxsize))[0]
+
+    if len(gtx)>0: x[gtx] -= boxsize
+    if len(ltx)>0: x[ltx] += boxsize
+
+    return x
 
 def look_for_min_distance_and_mass(cdm_info, sample, sidm_info, sidm_haloes):
 
@@ -127,33 +151,38 @@ def look_for_min_distance_and_mass(cdm_info, sample, sidm_info, sidm_haloes):
     sidm_halo_mass = sidm_info.halo_data.log10_halo_mass[sample_sidm]
     sidm_mass_diff = sidm_halo_mass - cdm_halo_mass
 
-    select = np.where(np.abs(sidm_mass_diff) == np.min(np.abs(sidm_mass_diff)))[0]
+    select = np.where(np.abs(sidm_mass_diff) < 0.2)[0]
 
     if len(select) == 1:
         match = sidm_haloes[select]
+        # print('Halo Masses')
+        # print(cdm_halo_mass, sidm_halo_mass[select], sidm_haloes[select])
 
     else:
+
         cdm_center = np.array([
             cdm_info.halo_data.xminpot[sample],
             cdm_info.halo_data.yminpot[sample],
             cdm_info.halo_data.zminpot[sample],
         ])
 
-        sidm_center = np.zeros((3,len(select)))
-        sidm_center[0,:] = sidm_info.halo_data.xminpot[sample_sidm[select]]
-        sidm_center[1,:] = sidm_info.halo_data.yminpot[sample_sidm[select]]
-        sidm_center[2,:] = sidm_info.halo_data.zminpot[sample_sidm[select]]
+        if len(select) == 0: select = np.arange(0,len(sample_sidm))
 
-        # sidm_center = np.array([
-        #     sidm_info.halo_data.xminpot[sample_sidm[select]],
-        #     sidm_info.halo_data.yminpot[sample_sidm[select]],
-        #     sidm_info.halo_data.zminpot[sample_sidm[select]],
-        # ])
+        sidm_center = np.zeros((len(select),3))
+        sidm_center[:,0] = sidm_info.halo_data.xminpot[sample_sidm[select]]
+        sidm_center[:,1] = sidm_info.halo_data.yminpot[sample_sidm[select]]
+        sidm_center[:,2] = sidm_info.halo_data.zminpot[sample_sidm[select]]
 
         r = sidm_center - cdm_center
         r = np.sqrt(np.sum(r ** 2, axis=1))
+
         select_pos = np.where(r == np.min(r))[0]
         match = sidm_haloes[select[select_pos[0]]]
+
+        # print('Halo Masses')
+        # print(cdm_halo_mass, sidm_halo_mass[select[select_pos]])
+        # print('Halo positions')
+        # print(cdm_center, sidm_center[select_pos,:], r)
 
     return match # returning SIDM halo index
 
@@ -167,6 +196,7 @@ def match_simulations(cdm_info, sidm_info):
 
     #sample = np.where(cdm_info.halo_data.log10_halo_mass >= 10)[0]
     sample = np.where(cdm_info.halo_data.log10_stellar_mass >= 8.5)[0]
+    #sample = np.where(cdm_info.halo_data.log10_stellar_mass >= 10)[0]
 
     halo_index = cdm_info.halo_data.halo_index[sample]
     num_haloes = len(sample)
@@ -188,7 +218,7 @@ def match_simulations(cdm_info, sidm_info):
             matched_halo_sidm[i] = look_for_min_distance_and_mass(
                 cdm_info, sample[i], sidm_info, sidm_haloes)
 
-        # print('sidm haloes', matched_halo_sidm[i], halo_index[i])
+        # print('CDM halo', halo_index[i], 'matched sidm halo', matched_halo_sidm[i])
 
     # Output data
     output_file = f"{cdm_info.output_path}/Halo_match_" + sidm_info.simulation_name + ".hdf5"
