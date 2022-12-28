@@ -74,18 +74,17 @@ def select_haloes(sim_info, cdm_ids):
     halo_position = group_file["Offset"][:]
     particle_ids_sim = particles_file["Particle_IDs"][:]
 
-    match_sim = np.zeros(len(cdm_ids))
+    match_sim = np.ones(len(cdm_ids)) * (-1)
     for i in range(len(cdm_ids)):
         select = np.where(particle_ids_sim == cdm_ids[i])[0]
         if len(select) == 1:
             select_halo_range = np.where(halo_position <= select)[0]
             match_sim[i] = select_halo_range[-1]
-        #     match_sim[i] = select
 
-    # # Remove zero case
-    # match_sim = match_sim[match_sim>0]
-    # match_sim = match_sim.astype('int')
-    #
+    # Remove no-case
+    match_sim = match_sim[match_sim>=0]
+    match_sim = match_sim.astype('int')
+
     # min_match = np.min(match_sim)
     # max_match = np.max(match_sim)
     # select_min_range = np.where(min_match >= halo_position)[0]
@@ -97,8 +96,6 @@ def select_haloes(sim_info, cdm_ids):
     #     halo = np.array([select_min_range[-1]])
 
     halo, count = np.unique(match_sim, return_counts=True)
-    print(halo, count)
-    # halo = halo[count == np.amax(count)]
     halo = halo[count > 10]
     return halo
 
