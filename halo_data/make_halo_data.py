@@ -67,7 +67,8 @@ def load_profiles(sim_info, halo_index, output_file):
 
 def make_halo_data(sim_info):
 
-    sample = np.where(sim_info.halo_data.log10_halo_mass >= 11)[0]
+    # sample = np.where(sim_info.halo_data.log10_halo_mass >= 11)[0]
+    sample = np.where(sim_info.halo_data.log10_stellar_mass >= 9.6)[0]
     centrals = np.where(sim_info.halo_data.structure_type[sample] == 10)[0]
     sample = sample[centrals]
 

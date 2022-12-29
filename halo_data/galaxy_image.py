@@ -16,10 +16,12 @@ from swiftsimio.visualisation.smoothing_length_generation import (
 )
 from swiftsimio import swift_cosmology_to_astropy
 
-from unyt import pc, kpc, msun, cm, yr
-from unyt import proton_mass_cgs as mH
-from unyt import boltzmann_constant_cgs as kB
-from unyt import gravitational_constant_cgs as G
+from unyt import Mpc, kpc, pc
+
+#from unyt import pc, kpc, msun, cm, yr, mpc
+#from unyt import proton_mass_cgs as mH
+#from unyt import boltzmann_constant_cgs as kB
+#from unyt import gravitational_constant_cgs as G
 from unyt import unyt_array
 
 from astropy.visualization import make_lupton_rgb
@@ -107,12 +109,16 @@ def make_rotation_matrix(ang_momentum):
 def get_stars_surface_brightness_map(
     sim_info, halo_id, momentum, size, npix, r_img_kpc
 ):
-    catalogue = load_catalogue(sim_info.halo_data.path_to_catalogue)
+    # catalogue = load_catalogue(sim_info.halo_data.path_to_catalogue)
 
-    # center of the halo
-    x = catalogue.positions.xcmbp[halo_id]
-    y = catalogue.positions.ycmbp[halo_id]
-    z = catalogue.positions.zcmbp[halo_id]
+    # center of the halo, to kpc units..
+    x = sim_info.halo_data.xminpot[halo_id] * Mpc
+    y = sim_info.halo_data.yminpot[halo_id] * Mpc
+    z = sim_info.halo_data.zminpot[halo_id] * Mpc
+
+    # x = catalogue.positions.xcmbp[halo_id]
+    # y = catalogue.positions.ycmbp[halo_id]
+    # z = catalogue.positions.zcmbp[halo_id]
 
     # angular momentum of the stars (for projection)
     # lx = catalogue.angular_momentum.lx_star[halo_id]
@@ -127,16 +133,16 @@ def get_stars_surface_brightness_map(
     # needs to be in comoving coordinates for the mask
     region = [
         [
-            x / catalogue.scale_factor - size / catalogue.scale_factor,
-            x / catalogue.scale_factor + size / catalogue.scale_factor,
+            x / sim_info.a - size / sim_info.a,
+            x / sim_info.a + size / sim_info.a,
         ],
         [
-            y / catalogue.scale_factor - size / catalogue.scale_factor,
-            y / catalogue.scale_factor + size / catalogue.scale_factor,
+            y / sim_info.a - size / sim_info.a,
+            y / sim_info.a + size / sim_info.a,
         ],
         [
-            z / catalogue.scale_factor - size / catalogue.scale_factor,
-            z / catalogue.scale_factor + size / catalogue.scale_factor,
+            z / sim_info.a - size / sim_info.a,
+            z / sim_info.a + size / sim_info.a,
         ],
     ]
 
@@ -289,7 +295,8 @@ def make_galaxy_images(sim_info, halo_index, halo_sample, momentum, kappa):
 
     nr_total_plots = 3
 
-    npix = int(512 / 2)
+    # npix = int(512 / 2)
+    npix = 512
 
     r_img_kpc = 30.0 * kpc
     lbar_kpc = 15.0 * kpc
