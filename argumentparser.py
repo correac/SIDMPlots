@@ -228,10 +228,10 @@ class ArgumentWithInputFiles(object):
         else:
             self.name_list = [None] * len(self.directory_list)
 
-        if args.run_types is not None:
-            self.sim_type_list = args.run_types
-        else:
-            self.sim_type_list = [None] * len(self.directory_list)
+        # if args.run_types is not None:
+        #     self.sim_type_list = args.run_types
+        # else:
+        #     self.sim_type_list = [None] * len(self.directory_list)
 
         self.output_directory = args.output_directory
 

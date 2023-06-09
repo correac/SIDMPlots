@@ -134,7 +134,7 @@ class load_particle_data:
         """
 
         # The full metadata object is available from within the mask
-        size = unyt.unyt_array([0.5, 0.5, 0.5], 'Mpc')
+        size = unyt.unyt_array([1, 1, 1], 'Mpc')
 
         if index == None:
 

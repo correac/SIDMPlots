@@ -123,52 +123,79 @@ def bin_centers(radial_bins):
     inner = radial_bins[:-1]
     return 0.5 * (outer + inner)
 
-def AxialRatios(rs, ms):
+def AxialRatios(pos, mass):
     """
     rs - CoM subtracted positions of *selected* particles in galactic units
     ms - *selected* particle masses in galactic units
     """
 
-    radius = np.linalg.norm(rs[:, :3], axis=1)
-    rs = rs[radius > 0, :]
-    ms = ms[radius > 0]
-    rs2 = rs ** 2
+    radius = np.linalg.norm(pos[:, :3], axis=1)
+    rs = pos[radius > 0, :].copy()
+    ms = mass[radius > 0].copy()
+    rs2 = radius ** 2
+    mst = np.sum(ms)
 
     # construct MoI tensor
-    I_xx = (
-        rs2[:, [1, 2]].sum(axis=-1) / abs((rs2[:, [1, 2]].sum(axis=-1)) ** 0.5)
-    ) * ms
+    I_xx = ms * rs[:, 0] * rs[:, 0] / rs2
     I_xx = I_xx[np.isnan(I_xx) == False]  # remove nans
     I_xx = I_xx.sum()
-    I_yy = (
-        rs2[:, [0, 2]].sum(axis=-1) / abs((rs2[:, [0, 2]].sum(axis=-1)) ** 0.5)
-    ) * ms
+    I_yy = ms * rs[:, 1] * rs[:, 1] / rs2
     I_yy = I_yy[np.isnan(I_yy) == False]
     I_yy = I_yy.sum()
-    I_zz = (
-        rs2[:, [0, 1]].sum(axis=-1) / abs((rs2[:, [0, 1]].sum(axis=-1)) ** 0.5)
-    ) * ms
+    I_zz = ms * rs[:, 2] * rs[:, 2] / rs2
     I_zz = I_zz[np.isnan(I_zz) == False]
     I_zz = I_zz.sum()
-    I_xy = -((rs[:, 0] * rs[:, 1] / abs(rs[:, 0] * rs[:, 1]) ** 0.5) * ms)
+
+    I_xy = ms * rs[:, 0] * rs[:, 1] / rs2
     I_xy = I_xy[np.isnan(I_xy) == False]
     I_xy = I_xy.sum()
-    I_xz = -((rs[:, 0] * rs[:, 2] / abs(rs[:, 0] * rs[:, 2]) ** 0.5) * ms)
+
+    I_xz = ms * rs[:, 0] * rs[:, 2] / rs2
     I_xz = I_xz[np.isnan(I_xz) == False]
     I_xz = I_xz.sum()
-    I_yz = -((rs[:, 1] * rs[:, 2] / abs(rs[:, 1] * rs[:, 2]) ** 0.5) * ms)
+    I_yz = ms * rs[:, 1] * rs[:, 2] / rs2
     I_yz = I_yz[np.isnan(I_yz) == False]
     I_yz = I_yz.sum()
+
+    # I_xx = (
+    #     rs2[:, [1, 2]].sum(axis=-1) / abs((rs2[:, [1, 2]].sum(axis=-1)) ** 0.5)
+    # ) * ms
+    # I_xx = I_xx[np.isnan(I_xx) == False]  # remove nans
+    # I_xx = I_xx.sum()
+    # I_yy = (
+    #     rs2[:, [0, 2]].sum(axis=-1) / abs((rs2[:, [0, 2]].sum(axis=-1)) ** 0.5)
+    # ) * ms
+    # I_yy = I_yy[np.isnan(I_yy) == False]
+    # I_yy = I_yy.sum()
+    # I_zz = (
+    #     rs2[:, [0, 1]].sum(axis=-1) / abs((rs2[:, [0, 1]].sum(axis=-1)) ** 0.5)
+    # ) * ms
+    # I_zz = I_zz[np.isnan(I_zz) == False]
+    # I_zz = I_zz.sum()
+    # I_xy = -((rs[:, 0] * rs[:, 1] / abs(rs[:, 0] * rs[:, 1]) ** 0.5) * ms)
+    # I_xy = I_xy[np.isnan(I_xy) == False]
+    # I_xy = I_xy.sum()
+    # I_xz = -((rs[:, 0] * rs[:, 2] / abs(rs[:, 0] * rs[:, 2]) ** 0.5) * ms)
+    # I_xz = I_xz[np.isnan(I_xz) == False]
+    # I_xz = I_xz.sum()
+    # I_yz = -((rs[:, 1] * rs[:, 2] / abs(rs[:, 1] * rs[:, 2]) ** 0.5) * ms)
+    # I_yz = I_yz[np.isnan(I_yz) == False]
+    # I_yz = I_yz.sum()
     I = np.array([[I_xx, I_xy, I_xz], [I_xy, I_yy, I_yz], [I_xz, I_yz, I_zz]])
+    I /= mst
 
     # Get and order eigenvalues
     W, V = np.linalg.eig(I)
     W1, W2, W3 = np.sort(W)[::-1]
 
     # compute axes (unnormalised as we don't need absolute values)
-    a = np.sqrt(np.abs(W1 + W2 - W3))
-    b = np.sqrt(np.abs(W1 + W3 - W2))
-    c = np.sqrt(np.abs(W2 + W3 - W1))
+    a = np.sqrt(W1)
+    b = np.sqrt(W2)
+    c = np.sqrt(W3)
+
+    # a = np.sqrt(np.abs(W1 + W2 - W3))
+    # b = np.sqrt(np.abs(W1 + W3 - W2))
+    # c = np.sqrt(np.abs(W2 + W3 - W1))
 
     return a, b, c
 
@@ -185,6 +212,7 @@ def calculate_morphology(sim_info, sample):
     DM_c_axis = np.zeros((num_bins, num_haloes))
     DMNparts = np.zeros((num_bins, num_haloes))
     cross_section = np.zeros((num_bins-1, num_haloes))
+
     kappa = np.zeros(num_haloes)
     ang_momentum = np.zeros((num_haloes, 3))
     smomentum = np.zeros((num_haloes, 3))

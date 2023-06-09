@@ -2,8 +2,7 @@
 
 # Runs SIDMPlots using the following variables:
 python3 sidmfit.py \
--n DML025N752SigmaVelDep60Anisotropic \
--o ~/SIDMPlots/Simulation_data/ \
--f Tree_data_Satellites_DML025N752SigmaVelDep60Anisotropic \
--fc Tree_data_Satellites_DML025N752SigmaConstant00
+-n RefModel2L025N376SigmaConstant00 \
+-o ./ \
+-f /Users/camila/Dropbox/Science-projects/SIDM_project/HaloData/Halo_data_RefModel2L025N376SigmaConstant00.hdf5
 
