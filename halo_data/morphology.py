@@ -132,7 +132,7 @@ def AxialRatios(pos, mass):
     radius = np.linalg.norm(pos[:, :3], axis=1)
     rs = pos[radius > 0, :].copy()
     ms = mass[radius > 0].copy()
-    rs2 = radius ** 2
+    rs2 = radius[radius > 0] ** 2
     mst = np.sum(ms)
 
     # construct MoI tensor
