@@ -123,7 +123,7 @@ def bin_centers(radial_bins):
     inner = radial_bins[:-1]
     return 0.5 * (outer + inner)
 
-def AxialRatios(pos, mass):
+def AxialRatios(pos, mass, s, q):
     """
     rs - CoM subtracted positions of *selected* particles in galactic units
     ms - *selected* particle masses in galactic units
@@ -132,7 +132,7 @@ def AxialRatios(pos, mass):
     radius = np.linalg.norm(pos[:, :3], axis=1)
     rs = pos[radius > 0, :].copy()
     ms = mass[radius > 0].copy()
-    rs2 = radius[radius > 0] ** 2
+    rs2 = pos[radius > 0, 0]**2 + pos[radius > 0, 1]**2 / s**2 + pos[radius > 0, 2]**2 / q**2
     mst = np.sum(ms)
 
     # construct MoI tensor
@@ -255,7 +255,30 @@ def calculate_morphology(sim_info, sample):
 
             if len(select) < 10: continue
 
-            DM_a_axis[j,i], DM_b_axis[j,i], DM_c_axis[j,i] = AxialRatios(pos[select, :], mass[select])
+            s = 1
+            q = 1
+            diff = 100
+            ei = 100
+            counter = 0
+            while np.abs(diff) > 0.1:
+                a, b, c = AxialRatios(pos[select, :], mass[select], s, q)
+                q = c / a
+                s = b / a
+                tau = a + b + c
+                ej = (a - c ) / tau
+                diff = (ej - ei) / ej
+                ei = ej.copy()
+                r = pos[:, 0]**2 + pos[:, 1]**2 / s**2 + pos[:, 2]**2 / q**2
+                select = np.where(r <= radial_bins[j])[0]
+                if len(select) < 10 or counter > 10: break
+                counter += 1
+
+            # print(a, b, c, diff, q, s, radial_bins[j])
+            DM_a_axis[j, i] = a
+            DM_b_axis[j, i] = b
+            DM_c_axis[j, i] = c
+
+            #DM_a_axis[j,i], DM_b_axis[j,i], DM_c_axis[j,i] = AxialRatios(pos[select, :], mass[select], s, q)
 
         if sim_info.simulation_type == 'Hydro':
 
