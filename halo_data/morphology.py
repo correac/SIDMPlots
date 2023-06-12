@@ -255,25 +255,27 @@ def calculate_morphology(sim_info, sample):
 
             if len(select) < 10: continue
 
-            s = 1
-            q = 1
-            diff = 100
-            ei = 100
+            si = 1
+            qi = 1
+            max_diff = 100
             counter = 0
-            while np.abs(diff) > 0.1:
-                a, b, c = AxialRatios(pos[select, :], mass[select], s, q)
+            while np.abs(max_diff) > 1e-3:
+                a, b, c = AxialRatios(pos[select, :], mass[select], si, qi)
+                ratio = radial_bins[j] / (a * b * c)** (1./3.)
+                a, b, c = a * ratio, b * ratio, c * ratio
                 q = c / a
                 s = b / a
-                tau = a + b + c
-                ej = (a - c ) / tau
-                diff = (ej - ei) / ej
-                ei = ej.copy()
+                q_diff = (q - qi)**2 / qi**2
+                s_diff = (s - si)**2 / si**2
+                max_diff = max(q_diff, s_diff)
                 r = pos[:, 0]**2 + pos[:, 1]**2 / s**2 + pos[:, 2]**2 / q**2
                 select = np.where(r <= radial_bins[j])[0]
                 if len(select) < 10 or counter > 10: break
                 counter += 1
+                qi = q.copy()
+                si = s.copy()
 
-            # print(a, b, c, diff, q, s, radial_bins[j])
+            #print(a, b, c, max_diff, q, s, radial_bins[j], counter)
             DM_a_axis[j, i] = a
             DM_b_axis[j, i] = b
             DM_c_axis[j, i] = c
