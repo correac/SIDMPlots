@@ -5,7 +5,7 @@ python3 sidmdata.py \
 -s snapshot_0036.hdf5 \
 -c subhalo_0036.properties \
 -n RefModel2SigmaConstant00 \
--t DM \
+-t Hydro \
 -o /Users/camila/SimulationData/mahti/L025N376/Hydro/SigmaConstant00/output_data
 
 #python3 sidmdata.py \

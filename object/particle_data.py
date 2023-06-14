@@ -86,6 +86,12 @@ class load_star_particle_data:
         self.velocities = data.stars.velocities.to("km/s") - CoV
         self.masses = data.stars.masses.to("Msun")
 
+        self.luminosities_r_band = data.stars.luminosities.GAMA_r.value
+        self.luminosities_u_band = data.stars.luminosities.GAMA_u.value
+        self.luminosities_i_band = data.stars.luminosities.GAMA_i.value
+        self.luminosities_g_band = data.stars.luminosities.GAMA_g.value
+        self.luminosities_K_band = data.stars.luminosities.GAMA_K.value
+
 
 class load_gas_particle_data:
     """

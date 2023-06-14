@@ -2,7 +2,25 @@ import numpy as np
 from tqdm import tqdm
 from object import particle_data
 import scipy.stats as stat
+from scipy import interpolate
 
+def calculate_half_light_radius(pos, luminosity):
+
+    radius = np.linalg.norm(pos[:, :3], axis=1)
+    select_within_50_kpc_aperture = np.where(radius <= 50)[0]
+    radius = radius[select_within_50_kpc_aperture]
+    luminosity = luminosity[select_within_50_kpc_aperture]
+    total_luminosity = np.sum(luminosity)
+
+    sort_radius = np.argsort(radius)
+    luminosity = luminosity[sort_radius]
+    radius = radius[sort_radius]
+    cum_luminosity = np.cumsum(luminosity)
+    f = interpolate.interp1d(cum_luminosity, radius)
+
+    half_light_radius = f(total_luminosity / 2.)
+
+    return half_light_radius
 
 def calculate_kappa_co(pos, vel, mass):
     # subhalo contain subhalo data and is strutured as follow
@@ -216,6 +234,7 @@ def calculate_morphology(sim_info, sample):
     kappa = np.zeros(num_haloes)
     ang_momentum = np.zeros((num_haloes, 3))
     smomentum = np.zeros((num_haloes, 3))
+    GalaxyHalfLightRadius = np.zeros(num_haloes)
 
     Stars_a_axis = np.zeros((num_bins, num_haloes))
     Stars_b_axis = np.zeros((num_bins, num_haloes))
@@ -294,42 +313,49 @@ def calculate_morphology(sim_info, sample):
             vel[:, 0] -= sim_info.halo_data.vxminpot[sample[i]] # centering
             vel[:, 1] -= sim_info.halo_data.vyminpot[sample[i]]
             vel[:, 2] -= sim_info.halo_data.vzminpot[sample[i]]
+            luminosity = part_data.stars.luminosities_r_band[stars_bound_particles_only]
 
             kappa[i], ang_momentum[i,:], smomentum[i,:] = calculate_kappa_co(pos, vel, mass)
 
-            r = np.sqrt(np.sum(pos ** 2, axis=1))
+            GalaxyHalfLightRadius[i] = calculate_half_light_radius(pos, luminosity)
 
-            for j in range(num_bins):
+            # r = np.sqrt(np.sum(pos ** 2, axis=1))
+            #
+            # for j in range(num_bins):
+            #
+            #     select = np.where(r <= radial_bins[j])[0]
+            #
+            #     StarsNparts[j, i] = len(select)
+            #
+            #     if len(select) < 10: continue
+            #
+            #     Stars_a_axis[j, i], Stars_b_axis[j, i], Stars_c_axis[j, i] = AxialRatios(pos[select, :], mass[select])
 
-                select = np.where(r <= radial_bins[j])[0]
 
-                StarsNparts[j, i] = len(select)
-
-                if len(select) < 10: continue
-
-                Stars_a_axis[j, i], Stars_b_axis[j, i], Stars_c_axis[j, i] = AxialRatios(pos[select, :], mass[select])
-
-
-            gas_bound_particles_only = part_data.select_bound_particles(sim_info, halo_index[i], part_data.gas.ids)
-
-            if (len(gas_bound_particles_only) < 10) : continue
-
-            mass = part_data.gas.masses.value[stars_bound_particles_only]
-            pos = part_data.gas.coordinates.value[stars_bound_particles_only, :]
-            r = np.sqrt(np.sum(pos ** 2, axis=1))
-
-            for j in range(num_bins):
-
-                select = np.where(r <= radial_bins[j])[0]
-
-                GasNparts[j, i] = len(select)
-
-                if len(select) < 10: continue
-
-                Gas_a_axis[j, i], Gas_b_axis[j, i], Gas_c_axis[j, i] = AxialRatios(pos[select, :], mass[select])
-
+            # gas_bound_particles_only = part_data.select_bound_particles(sim_info, halo_index[i], part_data.gas.ids)
+            #
+            # if (len(gas_bound_particles_only) < 10) : continue
+            #
+            # mass = part_data.gas.masses.value[stars_bound_particles_only]
+            # pos = part_data.gas.coordinates.value[stars_bound_particles_only, :]
+            # r = np.sqrt(np.sum(pos ** 2, axis=1))
+            #
+            # for j in range(num_bins):
+            #
+            #     select = np.where(r <= radial_bins[j])[0]
+            #
+            #     GasNparts[j, i] = len(select)
+            #
+            #     if len(select) < 10: continue
+            #
+            #     Gas_a_axis[j, i], Gas_b_axis[j, i], Gas_c_axis[j, i] = AxialRatios(pos[select, :], mass[select])
 
     return {'DM_a_axis':DM_a_axis, 'DM_b_axis':DM_b_axis, 'DM_c_axis':DM_c_axis, 'DMNparts':DMNparts,
-            'cross_section':cross_section, 'radial_bins':radial_bins, 'kappa':kappa,  'Lmomentum':ang_momentum, 'smomentum':smomentum,
-            'Gas_a_axis': Gas_a_axis, 'Gas_b_axis': Gas_b_axis, 'Gas_c_axis': Gas_c_axis, 'GasNparts':GasNparts,
-            'Stars_a_axis': Stars_a_axis, 'Stars_b_axis': Stars_b_axis, 'Stars_c_axis': Stars_c_axis, 'StarsNparts': StarsNparts}
+            'cross_section':cross_section, 'radial_bins':radial_bins, 'kappa':kappa,  'Lmomentum':ang_momentum,
+            'smomentum':smomentum, 'GalaxyHalfLightRadius': GalaxyHalfLightRadius}
+
+    # return {'DM_a_axis':DM_a_axis, 'DM_b_axis':DM_b_axis, 'DM_c_axis':DM_c_axis, 'DMNparts':DMNparts,
+    #         'cross_section':cross_section, 'radial_bins':radial_bins, 'kappa':kappa,  'Lmomentum':ang_momentum,
+    #         'smomentum':smomentum, 'GalaxyHalfLightRadius': GalaxyHalfLightRadius,
+    #         'Gas_a_axis': Gas_a_axis, 'Gas_b_axis': Gas_b_axis, 'Gas_c_axis': Gas_c_axis, 'GasNparts':GasNparts,
+    #         'Stars_a_axis': Stars_a_axis, 'Stars_b_axis': Stars_b_axis, 'Stars_c_axis': Stars_c_axis, 'StarsNparts': StarsNparts}

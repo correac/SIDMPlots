@@ -67,8 +67,8 @@ def load_profiles(sim_info, halo_index, output_file):
 
 def make_halo_data(sim_info):
 
-    sample = np.where(sim_info.halo_data.log10_halo_mass >= 10)[0]
-    #sample = np.where(sim_info.halo_data.log10_stellar_mass >= 9.6)[0]
+    # sample = np.where(sim_info.halo_data.log10_halo_mass >= 10)[0]
+    sample = np.where(sim_info.halo_data.log10_stellar_mass >= 10)[0]
     centrals = np.where(sim_info.halo_data.structure_type[sample] == 10)[0]
     sample = sample[centrals]
 
@@ -86,6 +86,7 @@ def make_halo_data(sim_info):
     kappa = data['kappa']
     smomentum = data['smomentum']
     Lmomentum = data['Lmomentum']
+    GalaxyHalfLightRadius = data['GalaxyHalfLightRadius']
 
     # make_galaxy_images(sim_info, halo_index, sample, smomentum, kappa)
     # make_galaxy_images(sim_info, halo_index[0:25], sample[0:25], smomentum[:,0:25], kappa[0:25])
@@ -111,25 +112,28 @@ def make_halo_data(sim_info):
 
     if sim_info.simulation_type == 'Hydro':
 
-        f.create_dataset('StarsMajorAxis_a', data=data['Stars_a_axis'])
-        f.create_dataset('StarsMinorAxis_b', data=data['Stars_b_axis'])
-        f.create_dataset('StarsMinorAxis_c', data=data['Stars_c_axis'])
-        f.create_dataset('StarsNparticlesWithinAxisRadius', data=data['StarsNparts'])
-
-        f.create_dataset('GasMajorAxis_a', data=data['Gas_a_axis'])
-        f.create_dataset('GasMinorAxis_b', data=data['Gas_b_axis'])
-        f.create_dataset('GasMinorAxis_c', data=data['Gas_c_axis'])
-        f.create_dataset('GasNparticlesWithinAxisRadius', data=data['GasNparts'])
+        # f.create_dataset('StarsMajorAxis_a', data=data['Stars_a_axis'])
+        # f.create_dataset('StarsMinorAxis_b', data=data['Stars_b_axis'])
+        # f.create_dataset('StarsMinorAxis_c', data=data['Stars_c_axis'])
+        # f.create_dataset('StarsNparticlesWithinAxisRadius', data=data['StarsNparts'])
+        #
+        # f.create_dataset('GasMajorAxis_a', data=data['Gas_a_axis'])
+        # f.create_dataset('GasMinorAxis_b', data=data['Gas_b_axis'])
+        # f.create_dataset('GasMinorAxis_c', data=data['Gas_c_axis'])
+        # f.create_dataset('GasNparticlesWithinAxisRadius', data=data['GasNparts'])
 
         Mstar = sim_info.halo_data.log10_stellar_mass[sample]
         Mgas = sim_info.halo_data.log10_gas_mass[sample]
-        GalaxySize = sim_info.halo_data.galaxy_size[sample]
+        GalaxySize = sim_info.halo_data.half_mass_radius_star[sample]
+        GalaxyProjectedSize = sim_info.halo_data.half_mass_projected_radius_star[sample]
         SFR = sim_info.halo_data.sfr[sample]
         Metallicity = sim_info.halo_data.metallicity_stars[sample]
 
         f.create_dataset('Mstar', data=Mstar)
         f.create_dataset('Mgas', data=Mgas)
-        f.create_dataset('GalaxySize', data=GalaxySize)
+        f.create_dataset('GalaxyHalfMassRadius', data=GalaxySize)
+        f.create_dataset('GalaxyProjectedHalfMassRadius', data=GalaxyProjectedSize)
+        f.create_dataset('GalaxyHalfLightRadius', data=GalaxyHalfLightRadius)
         f.create_dataset('SFR', data=SFR)
         f.create_dataset('Metallicity', data=Metallicity)
         f.create_dataset('kappa', data=kappa)
@@ -137,4 +141,4 @@ def make_halo_data(sim_info):
 
     data_file.close()
 
-    load_profiles(sim_info, halo_index, output_file)
+    # load_profiles(sim_info, halo_index, output_file)

@@ -78,13 +78,15 @@ class HaloCatalogue:
                 catalogue.apertures.mass_gas_50_kpc.to("Msun").value[mask]
             )
 
-            self.galaxy_size = catalogue.apertures.rhalfmass_star_50_kpc.to("kpc").value[mask]
+            # Half mass radius in units of kpc (stars) [50k pc aperture]
+            self.half_mass_radius_star = catalogue.apertures.rhalfmass_star_50_kpc.to("kpc").value[mask]
 
-            # Half mass radius in units of kpc (stars)
-            self.half_mass_radius_star = catalogue.radii.r_halfmass_star.to("kpc").value[mask]
+            # Projected Half mass radius in units of kpc (stars) [50k pc aperture]
+            self.half_mass_projected_radius_star = \
+                catalogue.projected_apertures.projected_2_rhalfmass_star_50_kpc.to("kpc").value[mask]
 
-            # Half mass radius in units of kpc (gas)
-            self.half_mass_radius_gas = catalogue.radii.r_halfmass_gas.to("kpc").value[mask]
+            # Half mass radius in units of kpc (gas) [50k pc aperture]
+            self.half_mass_radius_gas = catalogue.apertures.rhalfmass_gas_50_kpc.to("kpc").value[mask]
 
             # Star formation rate in units of Msun/yr
             self.sfr = catalogue.apertures.sfr_gas_50_kpc.to("Msun/yr").value[mask]
