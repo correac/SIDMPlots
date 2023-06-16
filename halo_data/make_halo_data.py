@@ -67,8 +67,11 @@ def load_profiles(sim_info, halo_index, output_file):
 
 def make_halo_data(sim_info):
 
-    # sample = np.where(sim_info.halo_data.log10_halo_mass >= 10)[0]
-    sample = np.where(sim_info.halo_data.log10_stellar_mass >= 10)[0]
+    if sim_info.simulation_type == 'Hydro':
+        sample = np.where((sim_info.halo_data.log10_halo_mass >= 10) & (sim_info.halo_data.log10_stellar_mass >= 8.9))[0]
+    else:
+        sample = np.where(sim_info.halo_data.log10_halo_mass >= 10)[0]
+    
     centrals = np.where(sim_info.halo_data.structure_type[sample] == 10)[0]
     sample = sample[centrals]
 
@@ -141,4 +144,4 @@ def make_halo_data(sim_info):
 
     data_file.close()
 
-    # load_profiles(sim_info, halo_index, output_file)
+    load_profiles(sim_info, halo_index, output_file)
