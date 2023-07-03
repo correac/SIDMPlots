@@ -90,6 +90,9 @@ def make_halo_data(sim_info):
     smomentum = data['smomentum']
     Lmomentum = data['Lmomentum']
     GalaxyHalfLightRadius = data['GalaxyHalfLightRadius']
+    GalaxyProjectedHalfLightRadius = data['GalaxyProjectedHalfLightRadius']
+    GalaxyLuminosity = data['GalaxyLuminosity']
+
 
     # make_galaxy_images(sim_info, halo_index, sample, smomentum, kappa)
     # make_galaxy_images(sim_info, halo_index[0:25], sample[0:25], smomentum[:,0:25], kappa[0:25])
@@ -137,6 +140,8 @@ def make_halo_data(sim_info):
         f.create_dataset('GalaxyHalfMassRadius', data=GalaxySize)
         f.create_dataset('GalaxyProjectedHalfMassRadius', data=GalaxyProjectedSize)
         f.create_dataset('GalaxyHalfLightRadius', data=GalaxyHalfLightRadius)
+        f.create_dataset('GalaxyProjectedHalfLightRadius', data=GalaxyHalfLightRadius)
+        f.create_dataset('GalaxyLuminosity', data=GalaxyLuminosity)
         f.create_dataset('SFR', data=SFR)
         f.create_dataset('Metallicity', data=Metallicity)
         f.create_dataset('kappa', data=kappa)

@@ -6,6 +6,20 @@ from scipy import interpolate
 
 def calculate_half_light_radius(pos, luminosity):
 
+    proj_radius = np.linalg.norm(pos[:, :2], axis=1)
+    select_proj_within_50_kpc_aperture = np.where(proj_radius <= 50)[0]
+    proj_radius = proj_radius[select_proj_within_50_kpc_aperture]
+    proj_luminosity = luminosity[select_proj_within_50_kpc_aperture]
+    proj_total_luminosity = np.sum(proj_luminosity)
+
+    sort_radius = np.argsort(proj_radius)
+    proj_luminosity = proj_luminosity[sort_radius]
+    proj_radius = proj_radius[sort_radius]
+    cum_luminosity = np.cumsum(proj_luminosity)
+    f = interpolate.interp1d(cum_luminosity, proj_radius)
+
+    projected_half_light_radius = f(proj_total_luminosity / 2.)
+
     radius = np.linalg.norm(pos[:, :3], axis=1)
     select_within_50_kpc_aperture = np.where(radius <= 50)[0]
     radius = radius[select_within_50_kpc_aperture]
@@ -20,7 +34,7 @@ def calculate_half_light_radius(pos, luminosity):
 
     half_light_radius = f(total_luminosity / 2.)
 
-    return half_light_radius
+    return half_light_radius, projected_half_light_radius, total_luminosity
 
 def calculate_kappa_co(pos, vel, mass):
     # subhalo contain subhalo data and is strutured as follow
@@ -235,6 +249,8 @@ def calculate_morphology(sim_info, sample):
     ang_momentum = np.zeros((num_haloes, 3))
     smomentum = np.zeros((num_haloes, 3))
     GalaxyHalfLightRadius = np.zeros(num_haloes)
+    GalaxyProjectedHalfLightRadius = np.zeros(num_haloes)
+    GalaxyLuminosity = np.zeros(num_haloes)
 
     Stars_a_axis = np.zeros((num_bins, num_haloes))
     Stars_b_axis = np.zeros((num_bins, num_haloes))
@@ -313,11 +329,12 @@ def calculate_morphology(sim_info, sample):
             vel[:, 0] -= sim_info.halo_data.vxminpot[sample[i]] # centering
             vel[:, 1] -= sim_info.halo_data.vyminpot[sample[i]]
             vel[:, 2] -= sim_info.halo_data.vzminpot[sample[i]]
-            luminosity = part_data.stars.luminosities_r_band[stars_bound_particles_only]
+            luminosity = part_data.stars.luminosities_K_band[stars_bound_particles_only]
 
             kappa[i], ang_momentum[i,:], smomentum[i,:] = calculate_kappa_co(pos, vel, mass)
 
-            GalaxyHalfLightRadius[i] = calculate_half_light_radius(pos, luminosity)
+            GalaxyHalfLightRadius[i], GalaxyProjectedHalfLightRadius[i],\
+                GalaxyLuminosity[i] = calculate_half_light_radius(pos, luminosity)
 
             # r = np.sqrt(np.sum(pos ** 2, axis=1))
             #
@@ -352,7 +369,8 @@ def calculate_morphology(sim_info, sample):
 
     return {'DM_a_axis':DM_a_axis, 'DM_b_axis':DM_b_axis, 'DM_c_axis':DM_c_axis, 'DMNparts':DMNparts,
             'cross_section':cross_section, 'radial_bins':radial_bins, 'kappa':kappa,  'Lmomentum':ang_momentum,
-            'smomentum':smomentum, 'GalaxyHalfLightRadius': GalaxyHalfLightRadius}
+            'smomentum':smomentum, 'GalaxyHalfLightRadius': GalaxyHalfLightRadius,
+            'GalaxyProjectedHalfLightRadius': GalaxyProjectedHalfLightRadius, 'GalaxyLuminosity': GalaxyLuminosity}
 
     # return {'DM_a_axis':DM_a_axis, 'DM_b_axis':DM_b_axis, 'DM_c_axis':DM_c_axis, 'DMNparts':DMNparts,
     #         'cross_section':cross_section, 'radial_bins':radial_bins, 'kappa':kappa,  'Lmomentum':ang_momentum,
