@@ -1,33 +1,65 @@
 #!/bin/bash
 
-python3 sidmdata.py \
--d /Users/camila/SimulationData/mahti/L025N376/Hydro/SigmaConstant00 \
+python3 makeposprocessing.py \
+-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaConstant00/ \
 -s snapshot_0036.hdf5 \
 -c subhalo_0036.properties \
--n RefModel2SigmaConstant00 \
+-n HaloCatalogueL025N376ReferenceSigmaConstant00 \
 -t Hydro \
--o /Users/camila/SimulationData/mahti/L025N376/Hydro/SigmaConstant00/output_data
+-o /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaConstant00/
 
-#python3 sidmdata.py \
-#-d /Users/camila/SimulationData/mahti/L025N376/Hydro/SigmaConstant10 \
-#-s snapshot_0036.hdf5 \
-#-c subhalo_0036.properties \
-#-n RefModel2SigmaConstant10 \
-#-t Hydro \
-#-o /Users/camila/SimulationData/mahti/L025N376/Hydro/SigmaConstant10/output_data
+python3 makeposprocessing.py \
+-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/WeakStellarFB/SigmaConstant00/ \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n HaloCatalogueL025N376WeakStellarFBSigmaConstant00 \
+-t Hydro \
+-o /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/WeakStellarFB/SigmaConstant00/
 
-#python3 sidmdata.py \
-#-d /projects/0/einf180/Tango_sims/L025N376/Hydro_Model_2/SigmaVelDep60Anisotropic/ \
-#-s snapshot_0036.hdf5 \
-#-c subhalo_0036.properties \
-#-n RefModel2SigmaVel60 \
-#-t Hydro \
-#-o /home/ccorrea/SIDMPlots/output_data/GalaxyImages/L025N376Model2SigmaVel60
+python3 makeposprocessing.py \
+-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/WeakStellarFB/SigmaVelDep30Anisotropic/ \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n HaloCatalogueL025N376WeakStellarFBSigmaVelDep30Anisotropic \
+-t Hydro \
+-o /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/WeakStellarFB/SigmaVelDep30Anisotropic/
 
-#python3 sidmdata.py \
-#-d /projects/0/einf180/Tango_sims/L025N376/Hydro_Model_2/SigmaVelDep30Anisotropic/ \
-#-s snapshot_0036.hdf5 \
-#-c subhalo_0036.properties \
-#-n RefModel2SigmaVel30 \
-#-t Hydro \
-#-o /home/ccorrea/SIDMPlots/output_data/GalaxyImages/L025N376Model2SigmaVel30
+python3 makeposprocessing.py \
+-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/WeakStellarFB/SigmaVelDep60Anisotropic/ \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n HaloCatalogueL025N376WeakStellarFBSigmaVelDep60Anisotropic \
+-t Hydro \
+-o /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/WeakStellarFB/SigmaVelDep60Anisotropic/
+
+python3 makeposprocessing.py \
+-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaVelDep30Anisotropic/ \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n HaloCatalogueL025N376ReferenceSigmaVelDep30Anisotropic \
+-t Hydro \
+-o /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaVelDep30Anisotropic/
+
+python3 makeposprocessing.py \
+-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaVelDep60Anisotropic/ \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n HaloCatalogueL025N376ReferenceSigmaVelDep60Anisotropic \
+-t Hydro \
+-o /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaVelDep60Anisotropic/
+
+python3 makeposprocessing.py \
+-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaConstant10/ \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n HaloCatalogueL025N376ReferenceSigmaConstant10 \
+-t Hydro \
+-o /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaConstant10/
+
+python3 makeposprocessing.py \
+-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/WeakStellarFB/SigmaConstant10/ \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n HaloCatalogueL025N376WeakStellarFBSigmaConstant10 \
+-t Hydro \
+-o /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/WeakStellarFB/SigmaConstant10/

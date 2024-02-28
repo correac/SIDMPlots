@@ -6,7 +6,7 @@ from .load_internal_evolution import load_internal_evolution, load_velocity_disp
 def make_tree_data(sim_info):
 
     select_sub_sample = np.where(
-        (sim_info.halo_data.log10_halo_mass >= 9.7) &
+        (sim_info.halo_data.log10_halo_mass >= 9) &
         (sim_info.halo_data.log10_halo_mass < 13))[0]
 
 
@@ -18,10 +18,10 @@ def make_tree_data(sim_info):
     halo_index = sim_info.halo_data.halo_index[sample]
 
     # Output data
-    output_file = f"{sim_info.output_path}/Tree_data_Centrals_" + sim_info.simulation_name + "_97_13.hdf5"
+    output_file = f"{sim_info.output_path}/Tree_data_Centrals_" + sim_info.simulation_name + ".hdf5"
     progenitor_index = build_tree(sim_info, halo_index, output_file)
 
-    load_internal_evolution(sim_info, progenitor_index, output_file)
+    # load_internal_evolution(sim_info, progenitor_index, output_file)
 
 
 def add_tree_data(sim_info, input_file):
