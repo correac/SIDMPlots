@@ -1,12 +1,12 @@
 #!/bin/bash
 
-python3 makeposprocessing.py \
--d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaConstant00/ \
--s snapshot_0036.hdf5 \
--c subhalo_0036.properties \
--n HaloCatalogueL025N376ReferenceSigmaConstant00 \
--t Hydro \
--o /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaConstant00/
+#python3 makeposprocessing.py \
+#-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaConstant00/ \
+#-s snapshot_0036.hdf5 \
+#-c subhalo_0036.properties \
+#-n HaloCatalogueL025N376ReferenceSigmaConstant00 \
+#-t Hydro \
+#-o /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaConstant00/
 
 python3 makeposprocessing.py \
 -d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/WeakStellarFB/SigmaConstant00/ \

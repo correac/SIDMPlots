@@ -5,7 +5,36 @@ import scipy.stats as stat
 from scipy import interpolate
 from swiftsimio.visualisation.rotation import rotation_matrix_from_vector
 
-def calculate_half_light_radius(pos, luminosity):
+def calculate_half_light_radius(pos, luminosity, mass, momentum, kappa):
+
+    radius = np.linalg.norm(pos[:, :3], axis=1)
+    select_within_50_kpc_aperture = np.where(radius <= 50)[0]
+    radius = radius[select_within_50_kpc_aperture]
+    Ms = np.sum(mass[select_within_50_kpc_aperture])
+    total_luminosity = luminosity[select_within_50_kpc_aperture]
+    total_luminosity = np.sum(total_luminosity)
+
+    sort_radius = np.argsort(radius)
+    unproj_luminosity = luminosity[sort_radius]
+    radius = radius[sort_radius]
+    cum_luminosity = np.cumsum(unproj_luminosity)
+    f = interpolate.interp1d(cum_luminosity, radius)
+
+    half_light_radius = f(total_luminosity / 2.)
+
+    # Here I impose that if my galaxies are massive, then
+    # their projected radius should correspond to the 2D
+    # projected considering galaxies face on. This is to mimic
+    # the observational bias of disky galaxies from SPARC, etc,
+    # that select galaxies based on their rotational curves.
+    if Ms > 1e10:
+
+        face_on_rotation_matrix = rotation_matrix_from_vector(momentum)
+
+        x, y, z = np.matmul(face_on_rotation_matrix, pos.T)
+        pos[:,0] = x
+        pos[:,1] = y
+        pos[:,2] = z
 
     proj_radius = np.linalg.norm(pos[:, :2], axis=1)
     select_proj_within_50_kpc_aperture = np.where(proj_radius <= 50)[0]
@@ -20,20 +49,6 @@ def calculate_half_light_radius(pos, luminosity):
     f = interpolate.interp1d(cum_luminosity, proj_radius)
 
     projected_half_light_radius = f(proj_total_luminosity / 2.)
-
-    radius = np.linalg.norm(pos[:, :3], axis=1)
-    select_within_50_kpc_aperture = np.where(radius <= 50)[0]
-    radius = radius[select_within_50_kpc_aperture]
-    luminosity = luminosity[select_within_50_kpc_aperture]
-    total_luminosity = np.sum(luminosity)
-
-    sort_radius = np.argsort(radius)
-    luminosity = luminosity[sort_radius]
-    radius = radius[sort_radius]
-    cum_luminosity = np.cumsum(luminosity)
-    f = interpolate.interp1d(cum_luminosity, radius)
-
-    half_light_radius = f(total_luminosity / 2.)
 
     return half_light_radius, projected_half_light_radius, total_luminosity
 
@@ -63,8 +78,6 @@ def calculate_kappa_co(pos, vel, mass):
 
     # Compute distances
     distancesDATA = np.sqrt(np.sum(pos ** 2, axis=1))
-
-    original_pos = pos.copy()
 
     # Restrict particles
     extract = distancesDATA < 30.0
@@ -118,13 +131,6 @@ def calculate_kappa_co(pos, vel, mass):
     sa_momentum = np.linalg.norm(sa_momentum)
 
     normed_momentum = momentum / np.linalg.norm(momentum)
-    face_on_rotation_matrix = rotation_matrix_from_vector(normed_momentum)
-
-    x, y, z = np.matmul(face_on_rotation_matrix, original_pos.T)
-    projected_pos = original_pos.copy()
-    projected_pos[:,0] = x
-    projected_pos[:,1] = y
-    projected_pos[:,2] = z
 
     # Compute rotational velocities
     smomentumz = np.sum(momentum * smomentums / np.linalg.norm(momentum), axis=1)
@@ -158,7 +164,7 @@ def calculate_kappa_co(pos, vel, mass):
     #momentum_inner_5kpc /= np.linalg.norm(momentum_inner_5kpc)
 
     # Return
-    return kappa_co, sa_momentum, momentum_inner_5kpc, projected_pos
+    return kappa_co, sa_momentum, momentum_inner_5kpc, normed_momentum
 
 def bin_centers(radial_bins):
     """Returns the centers of the bins. """
@@ -343,10 +349,10 @@ def calculate_morphology(sim_info, sample):
             vel[:, 2] -= sim_info.halo_data.vzminpot[sample[i]]
             luminosity = part_data.stars.luminosities_K_band[stars_bound_particles_only]
 
-            kappa[i], ang_momentum[i,:], smomentum[i,:], projected_pos = calculate_kappa_co(pos, vel, mass)
+            kappa[i], ang_momentum[i,:], smomentum[i,:], normed_momentum = calculate_kappa_co(pos, vel, mass)
 
             GalaxyHalfLightRadius[i], GalaxyProjectedHalfLightRadius[i],\
-                GalaxyLuminosity[i] = calculate_half_light_radius(projected_pos, luminosity)
+                GalaxyLuminosity[i] = calculate_half_light_radius(pos, luminosity, mass, normed_momentum, kappa[i])
 
             # r = np.sqrt(np.sum(pos ** 2, axis=1))
             #
