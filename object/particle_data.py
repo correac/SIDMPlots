@@ -4,7 +4,7 @@ import unyt
 import h5py
 from typing import Tuple
 import velociraptor
-
+from astropy.cosmology import Planck13 as cosmo
 
 class load_dark_matter_particle_data:
     """
@@ -78,6 +78,7 @@ class load_star_particle_data:
         data = sw.load(f"{sim_info.directory}/{sim_info.snapshot_name}", mask=mask)
 
         self.ids = data.stars.particle_ids.value
+        num_stars = len(self.ids)
 
         self.coordinates = data.stars.coordinates.to("Mpc") * sim_info.a
         self.coordinates -= CoP * sim_info.a  # centering
@@ -91,6 +92,17 @@ class load_star_particle_data:
         self.luminosities_i_band = data.stars.luminosities.GAMA_i.value
         self.luminosities_g_band = data.stars.luminosities.GAMA_g.value
         self.luminosities_K_band = data.stars.luminosities.GAMA_K.value
+
+        self.metal_mass_fractions = data.stars.metal_mass_fractions.value
+
+        stars_birthz = (
+                1.0 / data.stars.birth_scale_factors.value - 1.0
+        )
+
+        cosmic_age_z0 = cosmo.age(0.0).value
+        cosmic_age = cosmo.age(stars_birthz).value
+        self.age = numpy.ones(num_stars) * cosmic_age_z0 - cosmic_age
+
 
 
 class load_gas_particle_data:
