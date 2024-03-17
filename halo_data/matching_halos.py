@@ -192,7 +192,7 @@ def match_simulations(cdm_info, sidm_info):
     """
 
     #sample = np.where(cdm_info.halo_data.log10_halo_mass >= 10)[0]
-    sample = np.where(cdm_info.halo_data.log10_stellar_mass >= 8.5)[0]
+    sample = np.where(cdm_info.halo_data.log10_stellar_mass >= 9.5)[0]
     #sample = np.where(cdm_info.halo_data.log10_stellar_mass >= 10)[0]
 
     halo_index = cdm_info.halo_data.halo_index[sample]

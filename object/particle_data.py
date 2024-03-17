@@ -94,6 +94,7 @@ class load_star_particle_data:
         self.luminosities_K_band = data.stars.luminosities.GAMA_K.value
 
         self.metal_mass_fractions = data.stars.metal_mass_fractions.value
+        self.smoothed_metal_mass_fractions = data.stars.smoothed_metal_mass_fractions.value
 
         stars_birthz = (
                 1.0 / data.stars.birth_scale_factors.value - 1.0

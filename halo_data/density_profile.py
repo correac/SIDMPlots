@@ -247,42 +247,75 @@ def calculate_halo_data_hydro(sim_info, halo_index, density_radial_bins, velocit
 
         part_data = particle_data.load_particle_data(sim_info, halo_index[i])
 
-        stars_bound_particles_only = part_data.select_bound_particles(sim_info, halo_index[i], part_data.stars.ids)
-        gas_bound_particles_only = part_data.select_bound_particles(sim_info, halo_index[i], part_data.gas.ids)
-        dm_bound_particles_only = part_data.select_bound_particles(sim_info, halo_index[i], part_data.dark_matter.ids)
+        # stars_bound_particles_only = part_data.select_bound_particles(sim_info, halo_index[i], part_data.stars.ids)
+        # gas_bound_particles_only = part_data.select_bound_particles(sim_info, halo_index[i], part_data.gas.ids)
+        # dm_bound_particles_only = part_data.select_bound_particles(sim_info, halo_index[i], part_data.dark_matter.ids)
+        #
+        # if (len(stars_bound_particles_only) < 10) or (len(gas_bound_particles_only) < 10): continue
+        #
+        # stars_density[:,i], stars_veldisp[:,i] = \
+        #     calculate_profiles_hydro(part_data.stars.masses.value[stars_bound_particles_only],
+        #                              part_data.stars.coordinates.value[stars_bound_particles_only, :],
+        #                              part_data.stars.velocities.value[stars_bound_particles_only],
+        #                              density_radial_bins)
+        #
+        # gas_density[:, i], gas_veldisp[:, i] = \
+        #     calculate_profiles_hydro(part_data.gas.masses.value[gas_bound_particles_only],
+        #                              part_data.gas.coordinates.value[gas_bound_particles_only, :],
+        #                              part_data.gas.velocities.value[gas_bound_particles_only],
+        #                              density_radial_bins)
+        #
+        # stars_velocity[:,i] = \
+        #     calculate_Vcirc(part_data.stars.masses.value[stars_bound_particles_only],
+        #                     part_data.stars.coordinates.value[stars_bound_particles_only, :],
+        #                     velocity_radial_bins)
+        #
+        # gas_velocity[:,i] = \
+        #     calculate_Vcirc(part_data.gas.masses.value[gas_bound_particles_only],
+        #                     part_data.gas.coordinates.value[gas_bound_particles_only, :],
+        #                     velocity_radial_bins)
+        #
+        # density[:,i], velocity[:,i] = \
+        #     calculate_profiles_all_part_type(
+        #         part_data.stars.masses.value[stars_bound_particles_only],
+        #         part_data.stars.coordinates.value[stars_bound_particles_only, :],
+        #         part_data.gas.masses.value[gas_bound_particles_only],
+        #         part_data.gas.coordinates.value[gas_bound_particles_only, :],
+        #         part_data.dark_matter.masses.value[dm_bound_particles_only],
+        #         part_data.dark_matter.coordinates.value[dm_bound_particles_only, :],
+        #         density_radial_bins, velocity_radial_bins)
 
-        if (len(stars_bound_particles_only) < 10) or (len(gas_bound_particles_only) < 10): continue
 
         stars_density[:,i], stars_veldisp[:,i] = \
-            calculate_profiles_hydro(part_data.stars.masses.value[stars_bound_particles_only],
-                                     part_data.stars.coordinates.value[stars_bound_particles_only, :],
-                                     part_data.stars.velocities.value[stars_bound_particles_only],
+            calculate_profiles_hydro(part_data.stars.masses.value,
+                                     part_data.stars.coordinates.value[:, :],
+                                     part_data.stars.velocities.value,
                                      density_radial_bins)
 
         gas_density[:, i], gas_veldisp[:, i] = \
-            calculate_profiles_hydro(part_data.gas.masses.value[gas_bound_particles_only],
-                                     part_data.gas.coordinates.value[gas_bound_particles_only, :],
-                                     part_data.gas.velocities.value[gas_bound_particles_only],
+            calculate_profiles_hydro(part_data.gas.masses.value,
+                                     part_data.gas.coordinates.value[:, :],
+                                     part_data.gas.velocities.value,
                                      density_radial_bins)
 
         stars_velocity[:,i] = \
-            calculate_Vcirc(part_data.stars.masses.value[stars_bound_particles_only],
-                            part_data.stars.coordinates.value[stars_bound_particles_only, :],
+            calculate_Vcirc(part_data.stars.masses.value,
+                            part_data.stars.coordinates.value[:, :],
                             velocity_radial_bins)
 
         gas_velocity[:,i] = \
-            calculate_Vcirc(part_data.gas.masses.value[gas_bound_particles_only],
-                            part_data.gas.coordinates.value[gas_bound_particles_only, :],
+            calculate_Vcirc(part_data.gas.masses.value,
+                            part_data.gas.coordinates.value[:, :],
                             velocity_radial_bins)
 
         density[:,i], velocity[:,i] = \
             calculate_profiles_all_part_type(
-                part_data.stars.masses.value[stars_bound_particles_only],
-                part_data.stars.coordinates.value[stars_bound_particles_only, :],
-                part_data.gas.masses.value[gas_bound_particles_only],
-                part_data.gas.coordinates.value[gas_bound_particles_only, :],
-                part_data.dark_matter.masses.value[dm_bound_particles_only],
-                part_data.dark_matter.coordinates.value[dm_bound_particles_only, :],
+                part_data.stars.masses.value,
+                part_data.stars.coordinates.value[:, :],
+                part_data.gas.masses.value,
+                part_data.gas.coordinates.value[:, :],
+                part_data.dark_matter.masses.value,
+                part_data.dark_matter.coordinates.value[:, :],
                 density_radial_bins, velocity_radial_bins)
 
 

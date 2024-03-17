@@ -42,8 +42,12 @@ def make_pnbody_data(sim_info):
         vel[:, 1] -= sim_info.halo_data.vyminpot[sample[i]]  # in km/s
         vel[:, 2] -= sim_info.halo_data.vzminpot[sample[i]]
         age = part_data.stars.age[:]
-        metallicity = part_data.stars.metal_mass_fractions[:]
-        metallicity = np.log10(metallicity / 0.02)
+        metallicity = part_data.stars.smoothed_metal_mass_fractions[:]
+
+        Z_floor = 0.02 * 10**(-20.)
+        zero_correction = np.where(metallicity <= Z_floor)[0]
+        metallicity[zero_correction] = Z_floor
+        metallicity = np.log10(metallicity / 0.02) # Floor of -20
 
 
         # create the pNbody object
