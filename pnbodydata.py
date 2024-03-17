@@ -30,7 +30,7 @@ def make_pnbody_data(sim_info):
 
     for i in tqdm(range(num_sample)):
 
-        output_file = f"{sim_info.output_path}/Snapshot_galaxy_%i.hdf5" % halo_index[i]
+        output_file = f"{sim_info.output_path}/"+sim_info.simulation_name+"_galaxy_%i.hdf5" % halo_index[i]
 
         part_data = particle_data.load_particle_data(sim_info, halo_index[i])
 
