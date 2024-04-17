@@ -1,44 +1,44 @@
 #!/bin/bash
 
-python3 pnbodydata.py \
--d /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/L025N376_Reference_SigmaVelDep60Anisotropic \
--s snapshot_0036.hdf5 \
--c subhalo_0036.properties \
--n ReferenceSigmaVel60 \
--t Hydro \
--o /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/TangoSIDM_images/
-
-python3 pnbodydata.py \
--d /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/L025N376_Reference_SigmaVelDep30Anisotropic \
--s snapshot_0036.hdf5 \
--c subhalo_0036.properties \
--n ReferenceSigmaVel30 \
--t Hydro \
--o /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/TangoSIDM_images/
-
-python3 pnbodydata.py \
--d /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/L025N376_Reference_SigmaConstant10 \
--s snapshot_0036.hdf5 \
--c subhalo_0036.properties \
--n ReferenceSigmaConstant10 \
--t Hydro \
--o /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/TangoSIDM_images/
-
-python3 pnbodydata.py \
--d /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/L025N376_Reference_SigmaConstant00 \
--s snapshot_0036.hdf5 \
--c subhalo_0036.properties \
--n ReferenceSigmaConstant00 \
--t Hydro \
--o /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/TangoSIDM_images/
-
-#python3 makeposprocessing.py \
-#-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaConstant00/ \
+#python3 pnbodydata.py \
+#-d /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/L025N376_Reference_SigmaVelDep60Anisotropic \
 #-s snapshot_0036.hdf5 \
 #-c subhalo_0036.properties \
-#-n L025N376ReferenceSigmaConstant00 \
+#-n ReferenceSigmaVel60 \
 #-t Hydro \
-#-o /Users/cc276407/Simulation_data/home/TangoSIDM_Images/
+#-o /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/TangoSIDM_images/
+#
+#python3 pnbodydata.py \
+#-d /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/L025N376_Reference_SigmaVelDep30Anisotropic \
+#-s snapshot_0036.hdf5 \
+#-c subhalo_0036.properties \
+#-n ReferenceSigmaVel30 \
+#-t Hydro \
+#-o /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/TangoSIDM_images/
+#
+#python3 pnbodydata.py \
+#-d /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/L025N376_Reference_SigmaConstant10 \
+#-s snapshot_0036.hdf5 \
+#-c subhalo_0036.properties \
+#-n ReferenceSigmaConstant10 \
+#-t Hydro \
+#-o /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/TangoSIDM_images/
+#
+#python3 pnbodydata.py \
+#-d /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/L025N376_Reference_SigmaConstant00 \
+#-s snapshot_0036.hdf5 \
+#-c subhalo_0036.properties \
+#-n ReferenceSigmaConstant00 \
+#-t Hydro \
+#-o /cosma7/data/dp004/dc-corr1/SIMULATION_RUNS/TangoSIDM/TangoSIDM_images/
+
+python3 makesatsample.py \
+-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/Reference/SigmaConstant00/ \
+-s snapshot_0036.hdf5 \
+-c subhalo_0036.properties \
+-n L025N376ReferenceSigmaConstant00 \
+-t Hydro \
+-o /Users/cc276407/Simulation_data/home/TangoSIDM_Images/
 
 #python3 makeposprocessing.py \
 #-d /Users/cc276407/Simulation_data/snellius/TangoSIDM/L025N376/WeakStellarFB/SigmaConstant00/ \

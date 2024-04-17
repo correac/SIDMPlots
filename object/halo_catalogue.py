@@ -26,9 +26,9 @@ class HaloCatalogue:
         # Load catalogue using velociraptor python library
         catalogue = velociraptor.load(self.path_to_catalogue)
 
-        # Selecting haloes that contain at less 1000 DM particles
+        # Selecting haloes that contain at least x number of DM particles
         mask = np.where(
-            catalogue.masses.mass_200crit.to("Msun").value >= unyt.unyt_quantity(100 * dm_particle_mass, "Msun")
+            catalogue.masses.mass_200crit.to("Msun").value >= unyt.unyt_quantity(10 * dm_particle_mass, "Msun")
         )[0]
 
         # Compute the number of haloes following the selection mask
@@ -65,6 +65,9 @@ class HaloCatalogue:
         self.zcom = catalogue.positions.zc.to("Mpc").value[mask]
 
         self.id_mbp = catalogue.ids.id_mbp.value[mask]
+
+        self.satellite_flag = catalogue.satellites[mask]
+        self.central_flag = catalogue.centrals[mask]
 
         if simulation_type == 'Hydro':
 
